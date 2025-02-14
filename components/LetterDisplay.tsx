@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
-import { Heart, Brain, BookOpen, Type, Sparkles, Lock, X } from "lucide-react";
-import LoveLetter from "./LoveLetter";
+import {
+  Heart,
+  Brain,
+  BookOpen,
+  Type,
+  Sparkles,
+  Lock,
+  X,
+  Move,
+} from "lucide-react";
 import CelebrationScreen from "./CelebrationScreen";
 
 type GameType = "snake" | "quiz" | "memory" | "scramble" | "bubble" | "wordle";
@@ -20,14 +28,35 @@ const gameIcons: Record<GameType, GameIcon> = {
   wordle: { icon: Type, requiredScore: 6, label: "Love Words" },
 };
 
+interface Position {
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+}
+
+interface LetterDisplayProps {
+  unlockedGames: Record<GameType, boolean>;
+  onLetterSelect: (game: GameType) => void;
+}
+
 export default function LetterDisplay({
   unlockedGames,
-}: {
-  unlockedGames: Record<GameType, boolean>;
-}) {
-  const [selectedLetter, setSelectedLetter] = useState<GameType | null>(null);
+  onLetterSelect,
+}: LetterDisplayProps) {
   const [hoveredGame, setHoveredGame] = useState<GameType | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+
+  // New state for position and movement
+  const [position, setPosition] = useState<Position>({
+    x: 0,
+    y: 0,
+    scale: 1,
+    rotation: 0,
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragDistance, setDragDistance] = useState(0);
 
   // Check if all letters are unlocked
   useEffect(() => {
@@ -37,25 +66,88 @@ export default function LetterDisplay({
     }
   }, [unlockedGames]);
 
+  const handleDragStart = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragDistance(0);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
+
+  const handleDrag = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+
+    // Calculate distance moved
+    const distance = Math.sqrt(
+      Math.pow(newX - position.x, 2) + Math.pow(newY - position.y, 2)
+    );
+    setDragDistance((prev) => prev + distance);
+
+    setPosition((prev) => ({
+      ...prev,
+      x: newX,
+      y: newY,
+    }));
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const handleLetterClick = (game: GameType, isUnlocked: boolean) => {
+    if (isUnlocked) {
+      onLetterSelect(game);
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+
+    if (e.ctrlKey) {
+      // Scale with Ctrl + Wheel
+      setPosition((prev) => ({
+        ...prev,
+        scale: Math.max(0.5, Math.min(2, prev.scale - e.deltaY * 0.001)),
+      }));
+    } else if (e.shiftKey) {
+      // Rotate with Shift + Wheel
+      setPosition((prev) => ({
+        ...prev,
+        rotation: prev.rotation + (e.deltaY > 0 ? 5 : -5),
+      }));
+    }
+  };
+
   return (
     <>
-      {/* Fixed footer bar */}
       <div
-        className="sticky bottom-0 left-0 right-0 z-40 pb-4 pt-20 pointer-events-none"
+        className="fixed bottom-4 left-0 right-0 z-10 cursor-move"
         style={{
-          background:
-            "linear-gradient(to top, rgb(255 255 255) 60%, transparent)",
+          transform: `translate(${position.x}px, ${position.y}px) scale(${position.scale}) rotate(${position.rotation}deg)`,
+          transition: isDragging ? "none" : "transform 0.3s ease",
         }}
+        onMouseDown={handleDragStart}
+        onMouseMove={handleDrag}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+        onWheel={handleWheel}
       >
-        <div className="max-w-4xl mx-auto px-4 pointer-events-auto">
+        <div className="max-w-4xl mx-auto px-4">
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-rose-100">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-rose-600">
                 Love Letters Collection
               </h3>
-              <div className="text-sm text-rose-400">
-                {Object.values(unlockedGames).filter(Boolean).length} / 6
-                Unlocked
+              <div className="flex items-center gap-2">
+                <Move className="w-5 h-5 text-rose-400" />
+                <div className="text-sm text-rose-400">
+                  {Object.values(unlockedGames).filter(Boolean).length} / 6
+                  Unlocked
+                </div>
               </div>
             </div>
 
@@ -65,7 +157,7 @@ export default function LetterDisplay({
                   <div key={game} className="relative group">
                     <button
                       onClick={() =>
-                        unlockedGames[game] && setSelectedLetter(game)
+                        handleLetterClick(game, unlockedGames[game])
                       }
                       onMouseEnter={() => setHoveredGame(game)}
                       onMouseLeave={() => setHoveredGame(null)}
@@ -137,21 +229,6 @@ export default function LetterDisplay({
           </div>
         </div>
       </div>
-
-      {/* Letter Modal with improved transition */}
-      {selectedLetter && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative animate-in zoom-in-95 duration-200">
-            {/* <button
-              onClick={() => setSelectedLetter(null)}
-              className="absolute top-4 right-4 p-1 rounded-full hover:bg-rose-50 text-rose-400 hover:text-rose-500 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button> */}
-            <LoveLetter game={selectedLetter} />
-          </div>
-        </div>
-      )}
 
       {showCelebration && <CelebrationScreen />}
     </>

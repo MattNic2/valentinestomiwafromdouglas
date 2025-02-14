@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type GameType = "snake" | "quiz" | "memory" | "scramble" | "bubble" | "wordle";
 
 interface LoveLetterProps {
   game: GameType;
+  onLetterClose?: () => void;
 }
 
 const loveLetters = {
@@ -62,35 +64,66 @@ Forever mesmerized by you,
 Douglas 💝`,
 };
 
-export default function LoveLetter({ game }: LoveLetterProps) {
-  const [showMessage, setShowMessage] = useState(false);
+export default function LoveLetter({ game, onLetterClose }: LoveLetterProps) {
+  const [showMessage, setShowMessage] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setShowMessage(true);
+    setMounted(true);
+    return () => setMounted(false);
   }, []);
 
+  const handleClose = () => {
+    setShowMessage(false);
+    // After animation completes, reset the letter state
+    setTimeout(() => {
+      setMounted(false);
+      // Signal to parent to clear selectedLetter
+      onLetterClose?.();
+    }, 200);
+  };
+
+  if (!mounted) return null;
+
   return (
-    <>
+    <AnimatePresence mode="wait">
       {showMessage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto animate-[scaleIn_0.3s_ease-out]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]"
+          onClick={handleClose}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-3xl font-serif text-rose-600 mb-6 text-center">
               A Special Message for You
             </h2>
             <div className="prose prose-lg max-w-none">
               <pre className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed">
-                {loveLetters[game as keyof typeof loveLetters]}
+                {loveLetters[game]}
               </pre>
             </div>
             <button
-              onClick={() => setShowMessage(false)}
-              className="mt-6 bg-rose-600 hover:bg-rose-700 text-white px-6 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 mx-auto block"
+              onClick={handleClose}
+              className="mt-6 bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-full 
+                       text-sm font-medium transition-all duration-200 
+                       hover:scale-105 mx-auto block
+                       focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
             >
-              Close <span className="opacity-50">(Click anywhere)</span>
+              Close
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </>
+    </AnimatePresence>
   );
 }

@@ -18,6 +18,8 @@ interface InteractiveMapProps {
 const InteractiveMap = memo(
   ({ locations, onLocationSelect, selectedIndex }: InteractiveMapProps) => {
     const mapRef = useRef<HTMLDivElement>(null);
+    const markersRef = useRef<google.maps.Marker[]>([]);
+    const infoWindowsRef = useRef<google.maps.InfoWindow[]>([]);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
     const [infoWindows, setInfoWindows] = useState<google.maps.InfoWindow[]>(
@@ -125,6 +127,8 @@ const InteractiveMap = memo(
           setMap(mapInstance);
           setMarkers(newMarkers);
           setInfoWindows(newInfoWindows);
+          markersRef.current = newMarkers;
+          infoWindowsRef.current = newInfoWindows;
         } catch (error) {
           console.error("Error initializing map:", error);
         } finally {
@@ -135,8 +139,8 @@ const InteractiveMap = memo(
       initializeMap();
 
       return () => {
-        markers.forEach((marker) => marker.setMap(null));
-        infoWindows.forEach((window) => window.close());
+        markersRef.current.forEach((marker) => marker.setMap(null));
+        infoWindowsRef.current.forEach((window) => window.close());
       };
     }, [locations, onLocationSelect]);
 

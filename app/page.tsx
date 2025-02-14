@@ -17,7 +17,17 @@ const PhotoGallery = dynamic(() => import("../components/PhotoGallery"), {
 });
 
 export default function Home() {
-  const [showLoveLetters, setShowLoveLetters] = useState({
+  type GameType =
+    | "snake"
+    | "quiz"
+    | "memory"
+    | "scramble"
+    | "bubble"
+    | "wordle";
+
+  const [showLoveLetters, setShowLoveLetters] = useState<
+    Record<GameType, boolean>
+  >({
     snake: false,
     quiz: false,
     memory: false,
@@ -25,6 +35,7 @@ export default function Home() {
     bubble: false,
     wordle: false,
   });
+  const [selectedLetter, setSelectedLetter] = useState<GameType | null>(null);
 
   const [showFooter, setShowFooter] = useState(false);
 
@@ -68,10 +79,9 @@ export default function Home() {
     elements.forEach(setupScrollAnimation);
   }, []);
 
-  // Add scroll handler
+  // Update scroll handler to only affect footer on mobile
   useEffect(() => {
     const handleScroll = () => {
-      // Only show footer on mobile when near bottom
       if (window.innerWidth < 768) {
         const bottom =
           Math.ceil(window.innerHeight + window.scrollY) >=
@@ -192,17 +202,31 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Update LetterDisplay container */}
         <div
-          className={`transition-opacity duration-300 ${
-            showFooter ? "opacity-100" : "opacity-0 md:opacity-100"
-          }`}
+          className={`
+            md:fixed md:bottom-4 md:left-1/2 md:transform md:-translate-x-1/2 md:z-50 md:w-full md:max-w-3xl
+            transition-opacity duration-300
+            ${showFooter ? "opacity-100" : "opacity-0 md:opacity-100"}
+          `}
         >
-          <LetterDisplay unlockedGames={showLoveLetters} />
+          <LetterDisplay
+            unlockedGames={showLoveLetters}
+            onLetterSelect={setSelectedLetter}
+          />
         </div>
 
+        {/* Add LoveLetter at the page level */}
+        {selectedLetter && (
+          <LoveLetter
+            game={selectedLetter}
+            onLetterClose={() => setSelectedLetter(null)}
+          />
+        )}
+
         <footer
-          className={`text-center text-pink-700 mt-8 scroll-animate fade-in-up transition-opacity duration-300 ${
-            showFooter ? "opacity-100" : "opacity-0 md:opacity-100"
+          className={`text-center text-pink-700 mt-8 scroll-animate fade-in-up md:opacity-100 transition-opacity duration-300 ${
+            showFooter ? "opacity-100" : "opacity-0"
           }`}
         >
           <p>Created with love by Douglas for Miwa</p>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Shuffle, Timer, Heart } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Shuffle, Timer, Star, Heart } from "lucide-react";
 
 const VALENTINE_WORDS = [
   { word: "LOVE", hint: "The strongest emotion" },
@@ -36,18 +36,41 @@ export default function WordScramble({
   const [shake, setShake] = useState(false);
   const [message, setMessage] = useState("");
   const [usedWords, setUsedWords] = useState<Set<string>>(new Set());
+  const [lives, setLives] = useState(3);
+  const [lifeAnimation, setLifeAnimation] = useState(false);
+
+  // Add a ref to track if the game is active
+  const gameActiveRef = useRef(false);
+
+  // Add a ref to track if the input is focused
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const endGame = useCallback(() => {
     setGameOver(true);
+    gameActiveRef.current = false;
     onScoreChange(score);
   }, [score, onScoreChange]);
 
   const selectNewWord = useCallback(() => {
+    if (!gameActiveRef.current) return;
+
     const availableWords = VALENTINE_WORDS.filter(
       (w) => !usedWords.has(w.word)
     );
+
+    // Reset used words if we've used all words
     if (availableWords.length === 0) {
-      endGame();
+      setUsedWords(new Set());
+      const word =
+        VALENTINE_WORDS[Math.floor(Math.random() * VALENTINE_WORDS.length)];
+      setCurrentWord(word.word);
+      setHint(word.hint);
+      let scrambled = scrambleWord(word.word);
+      while (scrambled === word.word) {
+        scrambled = scrambleWord(word.word);
+      }
+      setScrambledWord(scrambled);
+      setUsedWords(new Set([word.word]));
       return;
     }
 
@@ -55,7 +78,13 @@ export default function WordScramble({
       availableWords[Math.floor(Math.random() * availableWords.length)];
     setCurrentWord(word);
     setHint(newHint);
-    setScrambledWord(scrambleWord(word));
+
+    let scrambled = scrambleWord(word);
+    while (scrambled === word) {
+      scrambled = scrambleWord(word);
+    }
+    setScrambledWord(scrambled);
+
     setUsedWords((prev) => {
       const newSet = new Set(prev);
       newSet.add(word);
@@ -63,35 +92,61 @@ export default function WordScramble({
     });
     setTimeLeft(ROUND_TIME);
     setShowHint(false);
+    setUserGuess(""); // Clear user guess when new word is selected
   }, [usedWords]);
 
+  // Update timer effect to only count down
   useEffect(() => {
     if (!gameOver && timeLeft > 0) {
-      const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            setMessage("Time's up! The word was: " + currentWord);
+            setLifeAnimation(true);
+            LifeLostReset();
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
       return () => clearInterval(timer);
-    } else if (timeLeft === 0 && !gameOver) {
-      endGame();
     }
-  }, [timeLeft, gameOver, endGame]);
+  }, [gameOver, endGame, currentWord]);
 
-  useEffect(() => {
+  const LifeLostReset = () => {
+    setTimeLeft(ROUND_TIME);
     selectNewWord();
-  }, [selectNewWord]);
+    setMessage(""); // Clear the message
+    setLives((prev) => {
+      const newLives = prev - 1;
+      if (newLives <= 0) {
+        endGame();
+        return 0;
+      }
+      return newLives;
+    });
+    setTimeout(() => {
+      setLifeAnimation(false);
+    }, 3000);
+  };
+
+  // Update initial game setup
+  useEffect(() => {
+    gameActiveRef.current = true;
+    setTimeLeft(ROUND_TIME);
+    selectNewWord();
+    return () => {
+      gameActiveRef.current = false;
+    };
+  }, []);
 
   const scrambleWord = (word: string) => {
-    let scrambled = word
-      .split("")
-      .sort(() => Math.random() - 0.5)
-      .join("");
-
-    // Make sure scrambled word is different from original
-    while (scrambled === word && word.length > 1) {
-      scrambled = word
-        .split("")
-        .sort(() => Math.random() - 0.5)
-        .join("");
+    const arr = word.split("");
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return scrambled;
+    return arr.join("");
   };
 
   const handleSubmit = () => {
@@ -103,20 +158,33 @@ export default function WordScramble({
     }
 
     if (userGuess.toUpperCase() === currentWord) {
-      setScore(score + 1);
+      const newScore = score + 1;
+      setScore(newScore);
+      onScoreChange(newScore);
       setMessage("Correct! 💝");
+      setTimeLeft(ROUND_TIME);
       setTimeout(() => {
         setMessage("");
-        setUserGuess("");
         selectNewWord();
       }, 1000);
     } else {
       setMessage("Try again! 💭");
       setShake(true);
+      setLifeAnimation(true);
       setTimeout(() => {
         setShake(false);
+        setLifeAnimation(false);
         setMessage("");
       }, 500);
+      setLives((prev) => {
+        const newLives = prev - 1;
+        if (newLives <= 0) {
+          endGame();
+          return 0;
+        }
+        return newLives;
+      });
+      setUserGuess(""); // Clear incorrect guess
     }
   };
 
@@ -126,6 +194,10 @@ export default function WordScramble({
     setUsedWords(new Set());
     setUserGuess("");
     setMessage("");
+    setTimeLeft(ROUND_TIME);
+    setLives(3);
+    onScoreChange(0);
+    gameActiveRef.current = true;
     selectNewWord();
   };
 
@@ -138,9 +210,25 @@ export default function WordScramble({
               <Timer className="w-5 h-5" />
               <span className="font-mono text-xl">{timeLeft}s</span>
             </div>
-            <div className="flex items-center gap-2 text-rose-500">
-              <Heart className="w-5 h-5" />
-              <span className="font-mono text-xl">{score}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1 text-rose-500">
+                {[...Array(3)].map((_, i) => (
+                  <Heart
+                    key={i}
+                    className={`w-5 h-5 transition-all duration-300 ${
+                      i < lives
+                        ? `fill-rose-500 ${
+                            lifeAnimation ? "animate-bounce" : ""
+                          }`
+                        : "fill-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-rose-500">
+                <Star className="w-5 h-5" />
+                <span className="font-mono text-xl">{score}</span>
+              </div>
             </div>
           </div>
 
@@ -170,10 +258,16 @@ export default function WordScramble({
 
           <div className={`space-y-4 ${shake ? "animate-shake" : ""}`}>
             <input
+              ref={inputRef}
               type="text"
               value={userGuess}
               onChange={(e) => setUserGuess(e.target.value.toUpperCase())}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              onKeyDown={(e) => {
+                e.stopPropagation(); // Prevent event from bubbling up
+                if (e.key === "Enter") {
+                  handleSubmit();
+                }
+              }}
               className="w-full p-3 border-2 border-rose-200 rounded-lg text-center
                 text-xl uppercase tracking-wider focus:border-rose-400 focus:ring-rose-400"
               placeholder="Your guess..."

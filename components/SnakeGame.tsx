@@ -210,7 +210,7 @@ export default function SnakeGame({
             : prev.obstacles,
       };
     });
-  }, [gameOver, onScoreChange]);
+  }, [gameOver, onScoreChange, cellSize]);
 
   useEffect(() => {
     if (!isPlaying || gameOver) return;

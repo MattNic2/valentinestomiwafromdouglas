@@ -75,7 +75,7 @@ export default function Home() {
 
         <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
           <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            Love Snake Game
+            Because you love slither.io so much
           </h2>
           <SnakeGame
             onScoreChange={(score) => handleScoreChange("snake", score)}
@@ -84,7 +84,7 @@ export default function Home() {
 
         <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
           <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            Love Quiz
+            Because you love love quizzes so much
           </h2>
           <LoveQuiz
             onScoreChange={(score) => handleScoreChange("quiz", score)}
@@ -93,7 +93,7 @@ export default function Home() {
 
         <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
           <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            Memory Match
+            This is payback for all the cognitive tests you made me take
           </h2>
           <MemoryMatch
             onScoreChange={(score) => handleScoreChange("memory", score)}
@@ -102,7 +102,7 @@ export default function Home() {
 
         <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
           <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            Love Word Scramble
+            I will always love the word scramble games we play
           </h2>
           <WordScramble
             onScoreChange={(score) => handleScoreChange("scramble", score)}

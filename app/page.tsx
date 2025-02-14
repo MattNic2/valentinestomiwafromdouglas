@@ -18,12 +18,12 @@ const PhotoGallery = dynamic(() => import("../components/PhotoGallery"), {
 
 export default function Home() {
   const [showLoveLetters, setShowLoveLetters] = useState({
-    snake: true,
-    quiz: true,
-    memory: true,
-    scramble: true,
-    bubble: true,
-    wordle: true,
+    snake: false,
+    quiz: false,
+    memory: false,
+    scramble: false,
+    bubble: false,
+    wordle: false,
   });
 
   const handleScoreChange = (

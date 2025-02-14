@@ -1,0 +1,79 @@
+src/
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── travel-dreams/
+│       └── page.tsx
+├── components/
+│   ├── common/
+│   │   ├── icons/
+│   │   │   ├── FloatingIcon.tsx
+│   │   │   └── index.ts
+│   │   ├── buttons/
+│   │   │   ├── IconButton.tsx
+│   │   │   └── index.ts
+│   │   └── layout/
+│   │       ├── PageContainer.tsx
+│   │       └── index.ts
+│   ├── travel/
+│   │   ├── calendar/
+│   │   │   ├── CalendarDay.tsx
+│   │   │   ├── CalendarEvent.tsx
+│   │   │   ├── CalendarGrid.tsx
+│   │   │   ├── CalendarHeader.tsx
+│   │   │   ├── TravelCalendar.tsx
+│   │   │   └── index.ts
+│   │   ├── destinations/
+│   │   │   ├── DestinationCard.tsx
+│   │   │   ├── DestinationDetails.tsx
+│   │   │   ├── DestinationList.tsx
+│   │   │   └── index.ts
+│   │   ├── itinerary/
+│   │   │   ├── Itinerary.tsx
+│   │   │   ├── ItineraryItem.tsx
+│   │   │   └── index.ts
+│   │   ├── map/
+│   │   │   ├── InteractiveMap.tsx
+│   │   │   ├── MapMarker.tsx
+│   │   │   └── index.ts
+│   │   └── route/
+│   │       ├── RouteStop.tsx
+│   │       ├── TravelRoute.tsx
+│   │       └── index.ts
+│   └── ui/
+│       ├── Card.tsx
+│       ├── Badge.tsx
+│       └── index.ts
+├── config/
+│   ├── constants.ts
+│   ├── maps.ts
+│   └── site.ts
+├── data/
+│   ├── destinations/
+│   │   ├── japan.ts
+│   │   ├── korea.ts
+│   │   ├── types.ts
+│   │   └── index.ts
+│   └── transport/
+│       ├── ferries.ts
+│       ├── flights.ts
+│       └── index.ts
+├── hooks/
+│   ├── useCalendar.ts
+│   ├── useItinerary.ts
+│   └── useWeather.ts
+├── lib/
+│   ├── api/
+│   │   ├── maps.ts
+│   │   └── weather.ts
+│   └── utils/
+│       ├── date.ts
+│       └── price.ts
+├── styles/
+│   ├── components/
+│   │   └── calendar.css
+│   └── globals.css
+└── types/
+    ├── calendar.ts
+    ├── destinations.ts
+    └── maps.ts 

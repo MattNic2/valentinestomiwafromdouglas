@@ -1,19 +1,24 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Shuffle, Timer, Heart } from "lucide-react";
 
-const words = [
-  "LOVE",
-  "HEART",
-  "KISS",
-  "ROMANCE",
-  "VALENTINE",
-  "CUPID",
-  "ADORE",
-  "AFFECTION",
-  "ACE",
-  "JAPAN AND KOREA",
+const VALENTINE_WORDS = [
+  { word: "LOVE", hint: "The strongest emotion" },
+  { word: "HEART", hint: "Symbol of affection" },
+  { word: "KISS", hint: "A romantic gesture" },
+  { word: "HUG", hint: "A warm embrace" },
+  { word: "SWEET", hint: "Like candy, like you" },
+  { word: "ROMANCE", hint: "What's in the air" },
+  { word: "CUPID", hint: "Love's archer" },
+  { word: "ROSES", hint: "Red flowers of love" },
+  { word: "ADORE", hint: "To love deeply" },
+  { word: "CHERISH", hint: "To hold dear" },
+  { word: "DARLING", hint: "Term of endearment" },
+  { word: "FOREVER", hint: "How long I'll love you" },
 ];
+
+const ROUND_TIME = 30; // seconds per word
 
 export default function WordScramble({
   onScoreChange,
@@ -22,84 +27,203 @@ export default function WordScramble({
 }) {
   const [currentWord, setCurrentWord] = useState("");
   const [scrambledWord, setScrambledWord] = useState("");
+  const [hint, setHint] = useState("");
   const [userGuess, setUserGuess] = useState("");
   const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
   const [gameOver, setGameOver] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [shake, setShake] = useState(false);
+  const [message, setMessage] = useState("");
+  const [usedWords, setUsedWords] = useState<Set<string>>(new Set());
 
-  const scrambleWord = useCallback((word: string) => {
-    return word
-      .split("")
-      .sort(() => Math.random() - 0.5)
-      .join("");
-  }, []);
-
-  const newWord = useCallback(() => {
-    const word = words[Math.floor(Math.random() * words.length)];
-    setCurrentWord(word);
-    setScrambledWord(scrambleWord(word));
-    setUserGuess("");
-  }, [scrambleWord]);
-
-  useEffect(() => {
-    newWord();
-  }, [newWord]);
-
-  useEffect(() => {
+  const endGame = useCallback(() => {
+    setGameOver(true);
     onScoreChange(score);
   }, [score, onScoreChange]);
 
-  function handleSubmit() {
+  const selectNewWord = useCallback(() => {
+    const availableWords = VALENTINE_WORDS.filter(
+      (w) => !usedWords.has(w.word)
+    );
+    if (availableWords.length === 0) {
+      endGame();
+      return;
+    }
+
+    const { word, hint: newHint } =
+      availableWords[Math.floor(Math.random() * availableWords.length)];
+    setCurrentWord(word);
+    setHint(newHint);
+    setScrambledWord(scrambleWord(word));
+    setUsedWords((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(word);
+      return newSet;
+    });
+    setTimeLeft(ROUND_TIME);
+    setShowHint(false);
+  }, [usedWords]);
+
+  useEffect(() => {
+    if (!gameOver && timeLeft > 0) {
+      const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0 && !gameOver) {
+      endGame();
+    }
+  }, [timeLeft, gameOver, endGame]);
+
+  useEffect(() => {
+    selectNewWord();
+  }, [selectNewWord]);
+
+  const scrambleWord = (word: string) => {
+    let scrambled = word
+      .split("")
+      .sort(() => Math.random() - 0.5)
+      .join("");
+
+    // Make sure scrambled word is different from original
+    while (scrambled === word && word.length > 1) {
+      scrambled = word
+        .split("")
+        .sort(() => Math.random() - 0.5)
+        .join("");
+    }
+    return scrambled;
+  };
+
+  const handleSubmit = () => {
+    if (!userGuess) {
+      setMessage("Please enter a guess!");
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      return;
+    }
+
     if (userGuess.toUpperCase() === currentWord) {
       setScore(score + 1);
-      if (score + 1 >= 5) {
-        setGameOver(true);
-      } else {
-        newWord();
-      }
+      setMessage("Correct! 💝");
+      setTimeout(() => {
+        setMessage("");
+        setUserGuess("");
+        selectNewWord();
+      }, 1000);
     } else {
-      setGameOver(true);
+      setMessage("Try again! 💭");
+      setShake(true);
+      setTimeout(() => {
+        setShake(false);
+        setMessage("");
+      }, 500);
     }
-  }
+  };
 
-  function resetGame() {
+  const resetGame = () => {
     setScore(0);
     setGameOver(false);
-    newWord();
-  }
+    setUsedWords(new Set());
+    setUserGuess("");
+    setMessage("");
+    selectNewWord();
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {!gameOver ? (
         <>
-          <p className="text-lg font-semibold">Unscramble: {scrambledWord}</p>
-          <input
-            type="text"
-            value={userGuess}
-            onChange={(e) => setUserGuess(e.target.value)}
-            className="w-full p-2 border border-rose-300 rounded"
-            placeholder="Your guess"
-          />
-          <button
-            onClick={handleSubmit}
-            className="w-full bg-rose-500 text-white py-2 rounded hover:bg-rose-600 transition-colors"
-          >
-            Submit
-          </button>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2 text-rose-500">
+              <Timer className="w-5 h-5" />
+              <span className="font-mono text-xl">{timeLeft}s</span>
+            </div>
+            <div className="flex items-center gap-2 text-rose-500">
+              <Heart className="w-5 h-5" />
+              <span className="font-mono text-xl">{score}</span>
+            </div>
+          </div>
+
+          <div className="bg-rose-50 p-6 rounded-xl">
+            <div className="text-center space-y-4">
+              <div
+                className="text-4xl font-bold tracking-wider text-rose-600 
+                animate-in slide-in-from-top duration-300"
+              >
+                {scrambledWord.split("").map((letter, index) => (
+                  <span
+                    key={index}
+                    className="inline-block mx-1 hover:scale-110 transition-transform"
+                  >
+                    {letter}
+                  </span>
+                ))}
+              </div>
+
+              {showHint && (
+                <p className="text-rose-500 italic animate-in fade-in slide-in-from-bottom-4">
+                  Hint: {hint}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className={`space-y-4 ${shake ? "animate-shake" : ""}`}>
+            <input
+              type="text"
+              value={userGuess}
+              onChange={(e) => setUserGuess(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              className="w-full p-3 border-2 border-rose-200 rounded-lg text-center
+                text-xl uppercase tracking-wider focus:border-rose-400 focus:ring-rose-400"
+              placeholder="Your guess..."
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleSubmit}
+                className="flex-1 bg-rose-500 text-white py-2 rounded-lg
+                  hover:bg-rose-600 transition-all transform hover:scale-105
+                  active:scale-95"
+              >
+                Submit
+              </button>
+              <button
+                onClick={() => setShowHint(true)}
+                disabled={showHint}
+                className="px-4 py-2 bg-rose-100 text-rose-600 rounded-lg
+                  hover:bg-rose-200 transition-all disabled:opacity-50
+                  disabled:cursor-not-allowed"
+              >
+                Hint
+              </button>
+            </div>
+          </div>
+
+          {message && (
+            <div className="text-center text-rose-500 font-medium animate-in fade-in slide-in-from-top-4">
+              {message}
+            </div>
+          )}
         </>
       ) : (
-        <div className="text-center">
-          <p className="text-xl font-bold mb-4">Game Over!</p>
-          <p className="text-lg">Your score: {score}</p>
+        <div className="text-center animate-in zoom-in-50 duration-300">
+          <p className="text-2xl font-bold mb-4">Game Over! 🎉</p>
+          <p className="text-lg mb-6">Your score: {score}</p>
           <button
             onClick={resetGame}
-            className="mt-4 bg-rose-500 text-white px-4 py-2 rounded hover:bg-rose-600 transition-colors"
+            className="inline-flex items-center gap-2 bg-rose-500 text-white px-6 py-3
+              rounded-lg hover:bg-rose-600 transition-all transform hover:scale-105
+              active:scale-95"
           >
+            <Shuffle className="w-4 h-4" />
             Play Again
           </button>
         </div>
       )}
-      <p className="text-sm text-rose-500">
-        Score 5 or higher for a special surprise!
+
+      <p className="text-sm text-rose-500 text-center">
+        Score 10 or higher for a special surprise!
       </p>
     </div>
   );

@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import SnakeGame from "../components/SnakeGame";
 import LoveQuiz from "../components/LoveQuiz";
 import MemoryMatch from "../components/MemoryMatch";
 import WordScramble from "../components/WordScramble";
 import LoveLetter from "../components/LoveLetter";
+import BubblePop from "../components/BubblePop";
+import LetterDisplay from "../components/LetterDisplay";
+import LoveWordle from "../components/LoveWordle";
 
 // Dynamically import PhotoGallery with ssr disabled
 const PhotoGallery = dynamic(() => import("../components/PhotoGallery"), {
@@ -15,10 +18,12 @@ const PhotoGallery = dynamic(() => import("../components/PhotoGallery"), {
 
 export default function Home() {
   const [showLoveLetters, setShowLoveLetters] = useState({
-    snake: false,
-    quiz: false,
-    memory: false,
-    scramble: false,
+    snake: true,
+    quiz: true,
+    memory: true,
+    scramble: true,
+    bubble: true,
+    wordle: true,
   });
 
   const handleScoreChange = (
@@ -26,95 +31,148 @@ export default function Home() {
     score: number
   ) => {
     if (
-      (game === "snake" && score >= 10) ||
-      (game === "quiz" && score >= 4) ||
-      (game === "memory" && score >= 8) ||
-      (game === "scramble" && score >= 5)
+      (game === "snake" && score >= 15) ||
+      (game === "quiz" && score >= 10) ||
+      (game === "memory" && score >= 16) ||
+      (game === "scramble" && score >= 10) ||
+      (game === "bubble" && score >= 20) ||
+      (game === "wordle" && score >= 6)
     ) {
       setShowLoveLetters((prev) => ({ ...prev, [game]: true }));
     }
   };
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-50 to-red-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        <section className="mb-12">
-          <header className="text-center mb-12 opacity-0 animate-[fadeIn_1s_ease-in_forwards]">
-            {/* Add a heart background or decorative elements */}
-            <div className="relative flex flex-col items-center text-center">
-              {/* Subtle Animated Heart Decorations */}
-              <div className="absolute inset-x-0 top-0 flex justify-center gap-4 opacity-40 animate-pulse">
-                <span className="text-rose-400 text-5xl md:text-6xl">❤️</span>
-                <span className="text-rose-300 text-4xl md:text-5xl">💖</span>
-                <span className="text-rose-300 text-4xl md:text-5xl">💞</span>
-                <span className="text-rose-300 text-4xl md:text-5xl">💘</span>
-              </div>
+  // Add scroll animation logic
+  const setupScrollAnimation = (element: Element) => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("animate-in");
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      }
+    );
 
-              {/* Main Title */}
+    observer.observe(element);
+  };
+
+  useEffect(() => {
+    const elements = document.querySelectorAll(".scroll-animate");
+    elements.forEach(setupScrollAnimation);
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-pink-50 to-red-100 p-8 pb-48">
+      <div className="max-w-4xl mx-auto space-y-12">
+        {/* Header Section with Fade-in */}
+        <section className="mb-12 opacity-0 animate-[fadeIn_1s_ease-in_forwards]">
+          <header className="text-center mb-12">
+            <div className="relative flex flex-col items-center text-center">
+              {/* Floating Hearts Background */}
               <h1 className="text-4xl md:text-6xl font-bold text-rose-600 mb-4 font-serif drop-shadow-md">
                 Douglas &amp; Miwa&apos;s Love Games
               </h1>
             </div>
 
-            {/* Subtitle with Valentine's Day message */}
-            <p className="text-lg text-rose-500">
+            <p className="text-lg text-rose-500 animate-fade-in-up">
               Happy Valentine&apos;s Day, Miwa! ❤️ You mean the world to me.
             </p>
 
-            {/* Optional: Add a romantic quote */}
-            <p className="mt-2 text-sm text-rose-400 italic">
+            <p className="mt-2 text-sm text-rose-400 italic animate-fade-in-up-delay">
               &quot;In all the world, there is no heart for me like yours. In
               all the world, there is no love for you like mine.&quot;
             </p>
           </header>
         </section>
 
-        <section className="mb-12">
+        {/* Photo Gallery with Slide-in */}
+        <section className="mb-12 scroll-animate slide-in-right">
           <PhotoGallery />
         </section>
 
-        <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
-          <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            Because you love slither.io so much
-          </h2>
-          <SnakeGame
-            onScoreChange={(score) => handleScoreChange("snake", score)}
-          />
+        {/* Game Sections with Staggered Fade-in */}
+        <section className="space-y-12">
+          <div className="scroll-animate fade-in-up">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-rose-600 mb-4">
+                Because you love slither.io so much
+              </h2>
+              <SnakeGame
+                onScoreChange={(score) => handleScoreChange("snake", score)}
+              />
+            </div>
+          </div>
+
+          <div className="scroll-animate fade-in-up delay-200">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-rose-600 mb-4">
+                Because you love love quizzes so much
+              </h2>
+              <LoveQuiz
+                onScoreChange={(score) => handleScoreChange("quiz", score)}
+              />
+            </div>
+          </div>
+
+          <div className="scroll-animate fade-in-up delay-400">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-rose-600 mb-4">
+                This is payback for all the cognitive tests you made me take
+              </h2>
+              <MemoryMatch
+                onScoreChange={(score) => handleScoreChange("memory", score)}
+              />
+            </div>
+          </div>
+
+          <div className="scroll-animate fade-in-up delay-600">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-rose-600 mb-4">
+                I will always love the word scramble games we play
+              </h2>
+              <h3 className="text-lg text-rose-500 mb-4">
+                Hint: The words are all valentine&apos;s day themed
+              </h3>
+              <WordScramble
+                onScoreChange={(score) => handleScoreChange("scramble", score)}
+              />
+            </div>
+          </div>
+
+          <div className="scroll-animate fade-in-up delay-800">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-rose-600 mb-4">
+                You make my heart pop
+              </h2>
+              <BubblePop
+                onScoreChange={(score) => handleScoreChange("bubble", score)}
+              />
+            </div>
+          </div>
+
+          <div className="scroll-animate fade-in-up delay-1000">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-rose-600 mb-4">
+                Love Wordle
+              </h2>
+              <h3 className="text-lg text-rose-500 mb-4">
+                Guess the 5-letter love-themed word!
+              </h3>
+              <LoveWordle
+                onScoreChange={(score) => handleScoreChange("wordle", score)}
+              />
+            </div>
+          </div>
         </section>
 
-        <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
-          <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            Because you love love quizzes so much
-          </h2>
-          <LoveQuiz
-            onScoreChange={(score) => handleScoreChange("quiz", score)}
-          />
-        </section>
+        <LetterDisplay unlockedGames={showLoveLetters} />
 
-        <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
-          <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            This is payback for all the cognitive tests you made me take
-          </h2>
-          <MemoryMatch
-            onScoreChange={(score) => handleScoreChange("memory", score)}
-          />
-        </section>
-
-        <section className="bg-white rounded-lg shadow-lg p-6 mb-12">
-          <h2 className="text-2xl font-semibold text-rose-600 mb-4">
-            I will always love the word scramble games we play
-          </h2>
-          <WordScramble
-            onScoreChange={(score) => handleScoreChange("scramble", score)}
-          />
-        </section>
-
-        {showLoveLetters.snake && <LoveLetter game="snake" />}
-        {showLoveLetters.quiz && <LoveLetter game="quiz" />}
-        {showLoveLetters.memory && <LoveLetter game="memory" />}
-        {showLoveLetters.scramble && <LoveLetter game="scramble" />}
-
-        <footer className="text-center text-pink-700 mt-8">
+        <footer className="text-center text-pink-700 mt-8 scroll-animate fade-in-up">
           <p>Created with love by Douglas for Miwa</p>
         </footer>
       </div>

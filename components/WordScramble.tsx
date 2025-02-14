@@ -1,55 +1,70 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react";
 
-const words = ["LOVE", "HEART", "KISS", "ROMANCE", "VALENTINE", "CUPID", "ADORE", "AFFECTION", "ACE", "JAPAN AND KOREA"]
+const words = [
+  "LOVE",
+  "HEART",
+  "KISS",
+  "ROMANCE",
+  "VALENTINE",
+  "CUPID",
+  "ADORE",
+  "AFFECTION",
+  "ACE",
+  "JAPAN AND KOREA",
+];
 
-export default function WordScramble({ onScoreChange }: { onScoreChange: (score: number) => void }) {
-  const [currentWord, setCurrentWord] = useState("")
-  const [scrambledWord, setScrambledWord] = useState("")
-  const [userGuess, setUserGuess] = useState("")
-  const [score, setScore] = useState(0)
-  const [gameOver, setGameOver] = useState(false)
+export default function WordScramble({
+  onScoreChange,
+}: {
+  onScoreChange: (score: number) => void;
+}) {
+  const [currentWord, setCurrentWord] = useState("");
+  const [scrambledWord, setScrambledWord] = useState("");
+  const [userGuess, setUserGuess] = useState("");
+  const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
-  useEffect(() => {
-    newWord()
-  }, [])
-
-  useEffect(() => {
-    onScoreChange(score)
-  }, [score, onScoreChange])
-
-  function scrambleWord(word: string) {
+  const scrambleWord = useCallback((word: string) => {
     return word
       .split("")
       .sort(() => Math.random() - 0.5)
-      .join("")
-  }
+      .join("");
+  }, []);
 
-  function newWord() {
-    const word = words[Math.floor(Math.random() * words.length)]
-    setCurrentWord(word)
-    setScrambledWord(scrambleWord(word))
-    setUserGuess("")
-  }
+  const newWord = useCallback(() => {
+    const word = words[Math.floor(Math.random() * words.length)];
+    setCurrentWord(word);
+    setScrambledWord(scrambleWord(word));
+    setUserGuess("");
+  }, [scrambleWord]);
+
+  useEffect(() => {
+    newWord();
+  }, [newWord]);
+
+  useEffect(() => {
+    onScoreChange(score);
+  }, [score, onScoreChange]);
 
   function handleSubmit() {
     if (userGuess.toUpperCase() === currentWord) {
-      setScore(score + 1)
+      setScore(score + 1);
       if (score + 1 >= 5) {
-        setGameOver(true)
+        setGameOver(true);
       } else {
-        newWord()
+        newWord();
       }
     } else {
-      setGameOver(true)
+      setGameOver(true);
     }
   }
 
   function resetGame() {
-    setScore(0)
-    setGameOver(false)
-    newWord()
+    setScore(0);
+    setGameOver(false);
+    newWord();
   }
 
   return (
@@ -83,8 +98,9 @@ export default function WordScramble({ onScoreChange }: { onScoreChange: (score:
           </button>
         </div>
       )}
-      <p className="text-sm text-rose-500">Score 5 or higher for a special surprise!</p>
+      <p className="text-sm text-rose-500">
+        Score 5 or higher for a special surprise!
+      </p>
     </div>
-  )
+  );
 }
-

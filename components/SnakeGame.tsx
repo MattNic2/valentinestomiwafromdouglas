@@ -27,9 +27,15 @@ import {
 import { ParticleEffect } from "./snake/ParticleEffect";
 
 const GRID_SIZE = 30;
-const CELL_SIZE = 20;
+const BASE_SPEED = 120;
 const TARGET_SCORE = 15;
-const BASE_SPEED = 120; // Faster base speed
+
+// Add this new function at the top level
+const calculateCellSize = (windowWidth: number) => {
+  if (windowWidth < 480) return 12; // For mobile
+  if (windowWidth < 768) return 16; // For tablets
+  return 20; // For desktop
+};
 
 // Add power-up icons mapping
 const POWER_UP_ICONS = {
@@ -68,6 +74,20 @@ export default function SnakeGame({
   const [particles, setParticles] = useState<
     { x: number; y: number; color: string }[]
   >([]);
+  const [cellSize, setCellSize] = useState(20);
+
+  // Add window resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      setCellSize(calculateCellSize(window.innerWidth));
+    };
+
+    // Set initial size
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (isPlaying) {
@@ -117,8 +137,8 @@ export default function SnakeGame({
         setParticles((prev) => [
           ...prev,
           {
-            x: head.x * CELL_SIZE + CELL_SIZE / 2,
-            y: head.y * CELL_SIZE + CELL_SIZE / 2,
+            x: head.x * cellSize + cellSize / 2,
+            y: head.y * cellSize + cellSize / 2,
             color: "#f43f5e",
           },
         ]);
@@ -152,8 +172,8 @@ export default function SnakeGame({
         setParticles((prev) => [
           ...prev,
           {
-            x: head.x * CELL_SIZE + CELL_SIZE / 2,
-            y: head.y * CELL_SIZE + CELL_SIZE / 2,
+            x: head.x * cellSize + cellSize / 2,
+            y: head.y * cellSize + cellSize / 2,
             color:
               powerUp.type === "speed"
                 ? "#facc15"
@@ -273,8 +293,8 @@ export default function SnakeGame({
           <div
             className="relative bg-gradient-to-br from-pink-100 to-rose-200 border-4 border-rose-300 rounded-lg overflow-hidden shadow-lg"
             style={{
-              width: GRID_SIZE * CELL_SIZE,
-              height: GRID_SIZE * CELL_SIZE,
+              width: GRID_SIZE * cellSize,
+              height: GRID_SIZE * cellSize,
             }}
           >
             {/* Render obstacles */}
@@ -287,10 +307,10 @@ export default function SnakeGame({
                     : "bg-purple-500 animate-pulse"
                 } rounded-md`}
                 style={{
-                  left: obstacle.position.x * CELL_SIZE,
-                  top: obstacle.position.y * CELL_SIZE,
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
+                  left: obstacle.position.x * cellSize,
+                  top: obstacle.position.y * cellSize,
+                  width: cellSize,
+                  height: cellSize,
                 }}
               />
             ))}
@@ -301,10 +321,10 @@ export default function SnakeGame({
                 key={`powerup-${index}`}
                 className="absolute rounded-full bg-white/80 p-1"
                 style={{
-                  left: powerUp.position.x * CELL_SIZE,
-                  top: powerUp.position.y * CELL_SIZE,
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
+                  left: powerUp.position.x * cellSize,
+                  top: powerUp.position.y * cellSize,
+                  width: cellSize,
+                  height: cellSize,
                 }}
               >
                 {POWER_UP_ICONS[powerUp.type]}
@@ -323,10 +343,10 @@ export default function SnakeGame({
                     : "bg-rose-500"
                 }`}
                 style={{
-                  left: segment.x * CELL_SIZE,
-                  top: segment.y * CELL_SIZE,
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
+                  left: segment.x * cellSize,
+                  top: segment.y * cellSize,
+                  width: cellSize,
+                  height: cellSize,
                   boxShadow:
                     index === 0 ? "0 0 10px rgba(225, 29, 72, 0.5)" : "none",
                 }}
@@ -336,10 +356,10 @@ export default function SnakeGame({
             <Heart
               className="absolute text-red-500 animate-pulse"
               style={{
-                left: gameState.food.x * CELL_SIZE,
-                top: gameState.food.y * CELL_SIZE,
-                width: CELL_SIZE,
-                height: CELL_SIZE,
+                left: gameState.food.x * cellSize,
+                top: gameState.food.y * cellSize,
+                width: cellSize,
+                height: cellSize,
               }}
             />
 

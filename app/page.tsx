@@ -26,6 +26,8 @@ export default function Home() {
     wordle: false,
   });
 
+  const [showFooter, setShowFooter] = useState(false);
+
   const handleScoreChange = (
     game: keyof typeof showLoveLetters,
     score: number
@@ -64,6 +66,26 @@ export default function Home() {
   useEffect(() => {
     const elements = document.querySelectorAll(".scroll-animate");
     elements.forEach(setupScrollAnimation);
+  }, []);
+
+  // Add scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      // Only show footer on mobile when near bottom
+      if (window.innerWidth < 768) {
+        const bottom =
+          Math.ceil(window.innerHeight + window.scrollY) >=
+          document.documentElement.scrollHeight;
+        setShowFooter(bottom);
+      } else {
+        setShowFooter(true); // Always show on desktop
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Check initial position
+
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -170,9 +192,19 @@ export default function Home() {
           </div>
         </section>
 
-        <LetterDisplay unlockedGames={showLoveLetters} />
+        <div
+          className={`transition-opacity duration-300 ${
+            showFooter ? "opacity-100" : "opacity-0 md:opacity-100"
+          }`}
+        >
+          <LetterDisplay unlockedGames={showLoveLetters} />
+        </div>
 
-        <footer className="text-center text-pink-700 mt-8 scroll-animate fade-in-up">
+        <footer
+          className={`text-center text-pink-700 mt-8 scroll-animate fade-in-up transition-opacity duration-300 ${
+            showFooter ? "opacity-100" : "opacity-0 md:opacity-100"
+          }`}
+        >
           <p>Created with love by Douglas for Miwa</p>
         </footer>
       </div>

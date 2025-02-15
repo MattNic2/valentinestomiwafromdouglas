@@ -1,14 +1,21 @@
 import { memo } from "react";
-import { Plane, Train, Bus, Ship, Minus, Plus } from "lucide-react";
+import { Plane, Train, Bus, Ship, Minus, Plus, DollarSign } from "lucide-react";
+import { ItineraryItem } from "../data/destinations";
 
 interface TransportCost {
+  id: string;
+  type: "transport";
+  from: string;
+  to: string;
+  country: string;
   name: string;
+  description: string;
   price: number;
-  icon?: React.ElementType;
+  duration: string;
+  emoji: string;
+  icon: React.ElementType;
   note?: string;
   url?: string;
-  id: string;
-  country: string;
 }
 
 interface CostBreakdown {
@@ -16,188 +23,148 @@ interface CostBreakdown {
   items: TransportCost[];
 }
 
-const costData: CostBreakdown[] = [
-  {
-    category: "International Flights",
-    items: [
-      {
-        id: "flight-lax-tokyo",
-        country: "Japan",
-        name: "LAX to Tokyo (Haneda)",
-        price: 850,
-        icon: Plane,
-        note: "Average economy round-trip",
-        url: "https://www.google.com/travel/flights",
-      },
-      {
-        id: "flight-tokyo-seoul",
-        country: "Korea",
-        name: "Tokyo to Seoul",
-        price: 250,
-        icon: Plane,
-        note: "One-way economy",
-        url: "https://www.google.com/travel/flights",
-      },
-      {
-        id: "flight-seoul-lax",
-        country: "Korea",
-        name: "Seoul to LAX",
-        price: 900,
-        icon: Plane,
-        note: "One-way economy",
-        url: "https://www.google.com/travel/flights",
-      },
-    ],
-  },
-  {
-    category: "Japan Transportation",
-    items: [
-      {
-        id: "7-day-jr-pass",
-        country: "Japan",
-        name: "7-Day JR Pass",
-        price: 234,
-        icon: Train,
-        note: "Unlimited JR trains including shinkansen",
-        url: "https://japanrailpass.net",
-      },
-      {
-        id: "tokyo-metro-pass",
-        country: "Japan",
-        name: "Tokyo Metro Pass (7 days)",
-        price: 22,
-        icon: Train,
-        note: "Unlimited subway rides in Tokyo",
-      },
-      {
-        id: "airport-transfer-haneda",
-        country: "Japan",
-        name: "Airport Transfer (Haneda)",
-        price: 13,
-        icon: Train,
-        note: "One-way to Tokyo Station",
-      },
-    ],
-  },
-  {
-    category: "Korea Transportation",
-    items: [
-      {
-        id: "korea-rail-pass",
-        country: "Korea",
-        name: "Korea Rail Pass (3 days)",
-        price: 91,
-        icon: Train,
-        note: "Unlimited KTX and rail travel",
-        url: "https://www.letskorail.com/ebizbf/EbizBfKrPassAbout.do",
-      },
-      {
-        id: "t-money-card",
-        country: "Korea",
-        name: "T-money Card + Credit",
-        price: 25,
-        icon: Bus,
-        note: "Transit card with initial balance",
-      },
-      {
-        id: "airport-express-train",
-        country: "Korea",
-        name: "Airport Express Train",
-        price: 8,
-        icon: Train,
-        note: "Incheon to Seoul Station",
-      },
-    ],
-  },
-];
+interface TravelCostsProps {
+  onSelectCost: (item: ItineraryItem) => void;
+  selectedCosts: Set<string>;
+}
 
 const TravelCosts = memo(
-  ({
-    onSelectCost,
-    selectedCosts,
-  }: {
-    onSelectCost: (cost: TransportCost) => void;
-    selectedCosts: Set<string>;
-  }) => {
-    const totalCost = costData.reduce(
-      (sum, category) =>
-        sum + category.items.reduce((catSum, item) => catSum + item.price, 0),
-      0
-    );
+  ({ onSelectCost, selectedCosts }: TravelCostsProps) => {
+    const transportCosts: TransportCost[] = [
+      {
+        id: "tokyo-kyoto-train",
+        type: "transport",
+        from: "Tokyo",
+        to: "Kyoto",
+        country: "Japan",
+        name: "Tokyo to Kyoto Train",
+        description: "Shinkansen Bullet Train",
+        price: 140,
+        duration: "2h 15m",
+        emoji: "🚅",
+        icon: Train,
+      },
+      {
+        id: "kyoto-osaka-train",
+        type: "transport",
+        from: "Kyoto",
+        to: "Osaka",
+        country: "Japan",
+        name: "Kyoto to Osaka Train",
+        description: "Local Express Train",
+        price: 15,
+        duration: "45m",
+        emoji: "🚅",
+        icon: Train,
+      },
+      {
+        id: "osaka-tokyo-train",
+        type: "transport",
+        from: "Osaka",
+        to: "Tokyo",
+        country: "Japan",
+        name: "Osaka to Tokyo Train",
+        description: "Return Shinkansen",
+        price: 140,
+        duration: "2h 30m",
+        emoji: "🚅",
+        icon: Train,
+      },
+    ];
+
+    const totalSelected = Array.from(selectedCosts).reduce((total, costId) => {
+      const cost = transportCosts.find((c) => c.id === costId);
+      return total + (cost?.price || 0);
+    }, 0);
 
     return (
       <div className="bg-white rounded-2xl shadow-xl p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Travel Cost Breakdown
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">
+            Transportation Costs
+          </h2>
+          {selectedCosts.size > 0 && (
+            <span className="text-sm text-gray-500">
+              {selectedCosts.size} selected
+            </span>
+          )}
+        </div>
 
-        <div className="space-y-8">
-          {costData.map((category) => (
-            <div key={category.category}>
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                {category.category}
-              </h3>
-              <div className="space-y-3">
-                {category.items.map((item) => {
-                  const isSelected = selectedCosts.has(item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => onSelectCost(item)}
-                      className={`w-full text-left flex items-center justify-between p-3 rounded-lg transition-colors
-                    ${
-                      isSelected
-                        ? "bg-rose-50 hover:bg-rose-100"
-                        : "bg-gray-50 hover:bg-rose-50"
-                    }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {item.icon && (
-                          <item.icon className="w-5 h-5 text-rose-500" />
-                        )}
-                        <div>
-                          <div className="font-medium text-gray-700">
-                            {item.name}
-                          </div>
-                          {item.note && (
-                            <div className="text-sm text-gray-500">
-                              {item.note}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-rose-500">
-                          ${item.price}
-                        </span>
-                        {isSelected ? (
-                          <Minus className="w-4 h-4 text-rose-500" />
-                        ) : (
-                          <Plus className="w-4 h-4 text-rose-500" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+        <div className="space-y-3">
+          {transportCosts.map((cost) => (
+            <button
+              key={cost.id}
+              onClick={() =>
+                onSelectCost({
+                  name: `${cost.from} to ${cost.to}`,
+                  description: cost.description,
+                  emoji: cost.emoji,
+                  price: cost.price,
+                  duration: cost.duration,
+                  country: cost.country,
+                  place: cost.from,
+                  type: "transport",
+                  transportDetails: {
+                    from: cost.from,
+                    to: cost.to,
+                    type: "train",
+                  },
+                  category: "Transportation",
+                })
+              }
+              className={`w-full p-4 rounded-lg transition-all duration-200 flex items-center gap-4
+              ${
+                selectedCosts.has(cost.id)
+                  ? "bg-rose-50 border-2 border-rose-500 shadow-sm"
+                  : "bg-gray-50 border-2 border-transparent hover:border-rose-200"
+              }`}
+            >
+              <cost.icon
+                className={`w-6 h-6 ${
+                  selectedCosts.has(cost.id) ? "text-rose-500" : "text-gray-500"
+                }`}
+              />
+              <div className="flex-grow text-left">
+                <div className="font-medium text-gray-800 flex items-center gap-2">
+                  {cost.from} → {cost.to}
+                  {selectedCosts.has(cost.id) && (
+                    <span className="text-xs px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full">
+                      Selected
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-600">{cost.description}</div>
               </div>
-            </div>
+              <div className="flex flex-col items-end">
+                <div className="flex items-center gap-1 text-rose-500 font-medium">
+                  <DollarSign className="w-4 h-4" />
+                  {cost.price}
+                </div>
+                <span className="text-xs text-gray-500">{cost.duration}</span>
+              </div>
+            </button>
           ))}
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-100">
-          <div className="flex justify-between items-center">
-            <span className="text-lg font-semibold text-gray-700">
-              Estimated Total Transportation Cost
-            </span>
-            <span className="text-2xl font-bold text-rose-500">
-              ${totalCost}
-            </span>
+        {selectedCosts.size > 0 && (
+          <div className="mt-6 pt-4 border-t border-gray-100">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="text-gray-600">Total Selected:</span>
+                <span className="text-sm text-gray-500 block mt-1">
+                  {selectedCosts.size} transport route
+                  {selectedCosts.size !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xl font-bold text-rose-500">
+                  ${totalSelected}
+                </span>
+                <span className="text-sm text-gray-500 block mt-1">total</span>
+              </div>
+            </div>
           </div>
-          <p className="mt-2 text-sm text-gray-500">
-            * Prices are estimates based on average costs. Actual prices may
-            vary based on season, availability, and booking time.
-          </p>
-        </div>
+        )}
       </div>
     );
   }

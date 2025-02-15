@@ -22,7 +22,9 @@ export type ActivityCategory =
   | "Shopping"
   | "Wellness"
   | "Adventure"
-  | "Nightlife";
+  | "Nightlife"
+  | "Accommodation"
+  | "Transportation";
 
 // Update activity schema to include category
 const activitySchema = z.object({
@@ -63,15 +65,20 @@ const linkSchema = z.object({
   iconName: z.enum(["globe", "map-pin", "calendar"]),
 });
 
-// Add a custom validator for image paths that accepts both URLs and local paths
+// Update the imagePathSchema to enforce URL parameters
 const imagePathSchema = z.string().refine(
   (value) => {
     // Accept both URLs and local paths starting with "/"
-    return value.startsWith("http") || value.startsWith("/");
+    const isValidPath = value.startsWith("http") || value.startsWith("/");
+    // If it's an Unsplash URL, ensure it has the required parameters
+    const hasRequiredParams =
+      !value.includes("unsplash.com") ||
+      (value.includes("auto=format") && value.includes("w=1200"));
+    return isValidPath && hasRequiredParams;
   },
   {
     message:
-      "Image path must be either a URL or a local path starting with '/'",
+      "Image path must be either a URL with proper parameters or a local path starting with '/'",
   }
 );
 
@@ -625,8 +632,133 @@ const rawDestinations = [
         media: [
           {
             type: "image",
-            url: "https://images.unsplash.com/photo-1590559899731-a382839e5549",
+            url: "https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&q=80&w=1200",
             title: "Osaka",
+          },
+        ],
+      },
+      {
+        name: "Hiroshima",
+        description: "A city of peace, resilience, and rich cultural heritage.",
+        emoji: "☮️",
+        activities: [
+          {
+            name: "Peace Memorial Museum",
+            description:
+              "Moving museum dedicated to peace and atomic bomb history",
+            category: "Museums",
+            emoji: "🕊️",
+            price: 20,
+            duration: "2-3 hours",
+            bookingUrl: "https://hpmmuseum.jp/",
+            tips: [
+              "Allow time for reflection",
+              "Audio guides available",
+              "Some exhibits may be emotional",
+            ],
+          },
+          {
+            name: "Atomic Bomb Dome Tour",
+            description: "Guided tour of the UNESCO World Heritage site",
+            category: "Culture & History",
+            emoji: "🏛️",
+            price: 45,
+            duration: "1.5 hours",
+            tips: [
+              "Best at sunset",
+              "Join guided tour for historical context",
+              "Visit Peace Park after",
+            ],
+          },
+          {
+            name: "Miyajima Island Day Trip",
+            description:
+              "Visit the famous floating torii gate and sacred island",
+            category: "Culture & History",
+            emoji: "⛩️",
+            price: 65,
+            duration: "Full day",
+            bookingUrl: "https://www.miyajima.or.jp/",
+            tips: [
+              "Check tide times for floating torii",
+              "Try local oysters",
+              "Watch out for deer",
+            ],
+          },
+          {
+            name: "Okonomiyaki Cooking Class",
+            description: "Learn to make Hiroshima's famous layered okonomiyaki",
+            category: "Food & Drink",
+            emoji: "🥘",
+            price: 55,
+            duration: "2 hours",
+            tips: [
+              "Vegetarian options available",
+              "Take home recipe provided",
+              "Great for lunch",
+            ],
+          },
+          {
+            name: "Hiroshima Food Tour",
+            description:
+              "Sample local specialties including oysters and okonomiyaki",
+            category: "Food & Drink",
+            emoji: "🦪",
+            price: 85,
+            duration: "3 hours",
+            tips: [
+              "Try Hiroshima-style okonomiyaki",
+              "Fresh oysters in season",
+              "Visit Okonomimura food village",
+            ],
+          },
+          {
+            name: "Shukkeien Garden",
+            description: "Historic Japanese landscape garden",
+            category: "Nature & Outdoors",
+            emoji: "🍁",
+            price: 15,
+            duration: "1.5 hours",
+            tips: [
+              "Beautiful in autumn",
+              "Tea ceremony available",
+              "Early morning best for photos",
+            ],
+          },
+          {
+            name: "Hiroshima Castle",
+            description: "Reconstructed samurai castle with museum",
+            category: "Culture & History",
+            emoji: "🏯",
+            price: 25,
+            duration: "2 hours",
+            tips: [
+              "Great city views from top",
+              "Wear comfortable shoes",
+              "Combined ticket with garden available",
+            ],
+          },
+          {
+            name: "Onomichi Temple Walk",
+            description: "Scenic hillside walk connecting historic temples",
+            category: "Culture & History",
+            emoji: "🚶",
+            price: 0,
+            duration: "3 hours",
+            tips: [
+              "Start early morning",
+              "Wear good walking shoes",
+              "Get temple stamp book",
+            ],
+          },
+        ],
+        image:
+          "https://images.unsplash.com/photo-1576675466969-38eeae4b41f6?auto=format&q=80&w=1200",
+        media: [
+          {
+            type: "image",
+            url: "https://images.unsplash.com/photo-1576675466969-38eeae4b41f6?auto=format&q=80&w=1200",
+            title: "Hiroshima Peace Memorial",
           },
         ],
       },
@@ -800,12 +932,136 @@ const rawDestinations = [
             tips: ["Bring toiletries", "Follow local etiquette"],
           },
         ],
-        image: "https://images.unsplash.com/photo-1617541086271-4d43983704bd",
+        image:
+          "https://images.unsplash.com/photo-1617541086271-4d43983704bd?auto=format&q=80&w=1200",
         media: [
           {
             type: "image",
-            url: "https://images.unsplash.com/photo-1617541086271-4d43983704bd",
+            url: "https://images.unsplash.com/photo-1617541086271-4d43983704bd?auto=format&q=80&w=1200",
             title: "Seoul",
+          },
+        ],
+      },
+      {
+        name: "Gapyeong",
+        description:
+          "Scenic countryside retreat famous for natural beauty and cultural attractions.",
+        emoji: "🌿",
+        activities: [
+          {
+            name: "Nami Island Visit",
+            description: "Scenic island famous for K-drama locations",
+            category: "Nature & Outdoors",
+            emoji: "🌳",
+            price: 40,
+            duration: "4 hours",
+            bookingUrl: "https://www.namisum.com/",
+            tips: [
+              "Take ferry or zip line entry",
+              "Rent a bicycle",
+              "Beautiful in all seasons",
+            ],
+          },
+          {
+            name: "The Garden of Morning Calm",
+            description:
+              "Korea's oldest private garden with seasonal illuminations",
+            category: "Nature & Outdoors",
+            emoji: "🌸",
+            price: 35,
+            duration: "2 hours",
+            tips: [
+              "Visit during light festival in winter",
+              "Best in spring for flowers",
+              "Good sunset photos",
+            ],
+          },
+          {
+            name: "Petite France",
+            description:
+              "French cultural village and Le Petit Prince theme park",
+            category: "Entertainment",
+            emoji: "🏰",
+            price: 30,
+            duration: "2 hours",
+            tips: [
+              "Watch cultural performances",
+              "Visit early for photos",
+              "Check show schedules",
+            ],
+          },
+          {
+            name: "Rail Bike Adventure",
+            description:
+              "Scenic railway bike ride along abandoned train tracks",
+            category: "Adventure",
+            emoji: "🚲",
+            price: 45,
+            duration: "1.5 hours",
+            bookingUrl: "https://www.gprailpark.com/",
+            tips: ["Book in advance", "Dress for weather", "Great for photos"],
+          },
+          {
+            name: "Korean BBQ Experience",
+            description: "Local countryside-style Korean barbecue",
+            category: "Food & Drink",
+            emoji: "🥩",
+            price: 50,
+            duration: "2 hours",
+            tips: [
+              "Try local mountain vegetables",
+              "Fresh ingredients",
+              "Popular with locals",
+            ],
+          },
+          {
+            name: "Strawberry Picking",
+            description: "Visit local strawberry farms for picking",
+            category: "Nature & Outdoors",
+            emoji: "🍓",
+            price: 25,
+            duration: "1.5 hours",
+            seasonal: "Winter-Spring",
+            tips: [
+              "Available December-May",
+              "All you can eat option",
+              "Great for families",
+            ],
+          },
+          {
+            name: "Gapyeong Makgeolli Tour",
+            description: "Traditional Korean rice wine tasting",
+            category: "Food & Drink",
+            emoji: "🍶",
+            price: 40,
+            duration: "2 hours",
+            tips: [
+              "Try local makgeolli varieties",
+              "Includes food pairing",
+              "Learn brewing process",
+            ],
+          },
+          {
+            name: "Jarasum Island",
+            description: "River island famous for jazz festival",
+            category: "Entertainment",
+            emoji: "🎷",
+            price: 0,
+            duration: "2 hours",
+            tips: [
+              "Visit during jazz festival in October",
+              "Nice picnic spot",
+              "Sunset views",
+            ],
+          },
+        ],
+        image:
+          "https://images.unsplash.com/photo-1597218868981-1b68e15f0065?auto=format&q=80&w=1200",
+        media: [
+          {
+            type: "image",
+            url: "https://images.unsplash.com/photo-1597218868981-1b68e15f0065?auto=format&q=80&w=1200",
+            title: "Nami Island",
           },
         ],
       },
@@ -881,11 +1137,12 @@ const rawDestinations = [
             duration: "3 hours",
           },
         ],
-        image: "https://images.unsplash.com/photo-1578037571214-25e07ed4a487",
+        image:
+          "https://images.unsplash.com/photo-1578037571214-25e07ed4a487?auto=format&q=80&w=1200",
         media: [
           {
             type: "image",
-            url: "https://images.unsplash.com/photo-1578037571214-25e07ed4a487",
+            url: "https://images.unsplash.com/photo-1578037571214-25e07ed4a487?auto=format&q=80&w=1200",
             title: "Busan",
           },
         ],
@@ -955,11 +1212,12 @@ const rawDestinations = [
             duration: "3 hours",
           },
         ],
-        image: "https://images.unsplash.com/photo-1604999333679-b86d54738315",
+        image:
+          "https://images.unsplash.com/photo-1604999333679-b86d54738315?auto=format&q=80&w=1200",
         media: [
           {
             type: "image",
-            url: "https://images.unsplash.com/photo-1604999333679-b86d54738315",
+            url: "https://images.unsplash.com/photo-1604999333679-b86d54738315?auto=format&q=80&w=1200",
             title: "Jeju Island",
           },
         ],
@@ -973,33 +1231,171 @@ const rawDestinations = [
         thumbnail: "https://i.ytimg.com/vi/3P1CnWI62Ik/maxresdefault.jpg",
       },
     ],
-    coverImage: "https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7",
+    coverImage:
+      "https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7?auto=format&q=80&w=1200",
   },
-] as const;
+]; /* remove 'as const' */
 
-// Validate and export destinations
-export const destinations = validateDestinations(rawDestinations);
+// Simplify the media type assertions since they're already handled by the schema
+const media = [
+  {
+    type: "image",
+    url: "...",
+    title: "...",
+  },
+];
 
-// Validation functions
+// Add error handling for validateDestinations to prevent runtime errors
 export function validateDestinations(data: unknown) {
   const schema = z.array(destinationSchema);
   try {
     return schema.parse(data);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error(
-        "Validation errors:",
-        JSON.stringify(error.errors, null, 2)
-      );
-    }
-    throw error;
+    console.error("Failed to validate destinations:", error);
+    // Return minimal fallback destination
+    return [
+      {
+        country: "Error Loading Destinations",
+        description:
+          "We're having trouble loading the destination data. Please try again later.",
+        currency: "Unknown",
+        language: "Unknown",
+        places: [],
+        generalTips: ["Please refresh the page to try again"],
+        media: [],
+        coverImage: validateMediaUrl(undefined),
+      },
+    ];
   }
 }
 
+// Add error handling for validateDestination
 export function validateDestination(destination: unknown): Destination {
-  return destinationSchema.parse(destination);
+  try {
+    const validated = destinationSchema.parse(destination);
+    return {
+      ...validated,
+      coverImage: validateMediaUrl(validated.coverImage),
+      places: validated.places.map((place) => ({
+        ...place,
+        image: validateMediaUrl(place.image),
+        media:
+          place.media?.map((m) => ({
+            ...m,
+            url: validateMediaUrl(m.url),
+            thumbnail:
+              m.type === "video"
+                ? validateMediaUrl(m.thumbnail)
+                : validateMediaUrl(m.url), // Use URL as thumbnail for images
+          })) || [],
+      })),
+      media: validated.media.map((m) => ({
+        ...m,
+        url: validateMediaUrl(m.url),
+        thumbnail:
+          m.type === "video"
+            ? validateMediaUrl(m.thumbnail)
+            : validateMediaUrl(m.url),
+      })),
+    };
+  } catch (error) {
+    console.error("Failed to validate destination:", error);
+    // Return a minimal valid destination as fallback
+    return {
+      country: "Error Loading Destination",
+      description: "Unable to load destination data",
+      currency: "Unknown",
+      language: "Unknown",
+      places: [],
+      generalTips: [],
+      media: [],
+      coverImage: validateMediaUrl(undefined),
+    };
+  }
 }
 
+// Update validateMediaUrl to be more robust with fallbacks
+function validateMediaUrl(url: string | undefined): string {
+  const fallbackUrl = {
+    image:
+      "https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&q=80&w=1200",
+    thumbnail:
+      "https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&q=80&w=400",
+    video: "https://www.youtube.com/watch?v=jfKfPfyJRdk",
+  };
+
+  if (!url) {
+    return fallbackUrl.image;
+  }
+
+  try {
+    // Validate URL format
+    new URL(url);
+
+    // If it's an Unsplash URL and missing parameters, add them
+    if (url.includes("unsplash.com") && !url.includes("auto=format")) {
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}auto=format&q=80&w=1200`;
+    }
+
+    // If it's a YouTube URL, validate format
+    if (url.includes("youtube.com") && !url.includes("watch?v=")) {
+      return fallbackUrl.video;
+    }
+
+    return url;
+  } catch (error) {
+    console.error("Invalid URL:", url, error);
+    return fallbackUrl.image;
+  }
+}
+
+// Export a function to get destinations that can be used during pre-rendering
+export async function getDestinations(): Promise<Destination[]> {
+  try {
+    return validateDestinations(rawDestinations);
+  } catch (error) {
+    console.error("Failed to get destinations:", error);
+    return [];
+  }
+}
+
+// Add back the missing type definitions and interfaces that are being imported
+export type TransportationType = "flight" | "train" | "bus" | "ferry";
+
+export interface TransportItem {
+  type: TransportationType;
+  from: string;
+  to: string;
+  date?: string;
+  price: number;
+  duration: string;
+  company?: string;
+  bookingUrl?: string;
+  emoji: string;
+}
+export interface ItineraryItem {
+  name: string;
+  description: string;
+  emoji: string;
+  duration?: string;
+  price?: number;
+  address?: string;
+  website?: string;
+  bookingUrl?: string;
+  country: string;
+  place: string;
+  type?: "activity" | "transport";
+  transportDetails?: {
+    from: string;
+    to: string;
+    type: TransportationType;
+  };
+  category: ActivityCategory;
+  tips?: string[];
+}
+
+// Add back the validation helper functions
 export function validatePlace(place: unknown): Place {
   return placeSchema.parse(place);
 }
@@ -1008,15 +1404,5 @@ export function validateActivity(activity: unknown): Activity {
   return activitySchema.parse(activity);
 }
 
-// Add ItineraryItem interface
-export interface ItineraryItem {
-  name: string;
-  description: string;
-  emoji: string;
-  price: number;
-  duration?: string;
-  country: string;
-  place: string;
-  bookingUrl?: string;
-  tips?: string[];
-}
+// Keep only the direct validation version at the end of the file
+export const destinations = validateDestinations(rawDestinations);

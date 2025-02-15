@@ -95,6 +95,23 @@ export default function WordScramble({
     setUserGuess(""); // Clear user guess when new word is selected
   }, [usedWords]);
 
+  const LifeLostReset = useCallback(() => {
+    setTimeLeft(ROUND_TIME);
+    selectNewWord();
+    setMessage(""); // Clear the message
+    setLives((prev) => {
+      const newLives = prev - 1;
+      if (newLives <= 0) {
+        endGame();
+        return 0;
+      }
+      return newLives;
+    });
+    setTimeout(() => {
+      setLifeAnimation(false);
+    }, 3000);
+  }, [endGame, selectNewWord]);
+
   // Update timer effect to only count down
   useEffect(() => {
     if (!gameOver && timeLeft > 0) {
@@ -111,24 +128,7 @@ export default function WordScramble({
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [gameOver, endGame, currentWord]);
-
-  const LifeLostReset = () => {
-    setTimeLeft(ROUND_TIME);
-    selectNewWord();
-    setMessage(""); // Clear the message
-    setLives((prev) => {
-      const newLives = prev - 1;
-      if (newLives <= 0) {
-        endGame();
-        return 0;
-      }
-      return newLives;
-    });
-    setTimeout(() => {
-      setLifeAnimation(false);
-    }, 3000);
-  };
+  }, [gameOver, currentWord, LifeLostReset, timeLeft]);
 
   // Update initial game setup
   useEffect(() => {
@@ -201,6 +201,11 @@ export default function WordScramble({
     selectNewWord();
   };
 
+  useEffect(() => {
+    if (timeLeft === 0) {
+      LifeLostReset();
+    }
+  }, [timeLeft]);
   return (
     <div className="space-y-6">
       {!gameOver ? (

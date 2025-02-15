@@ -15,6 +15,10 @@ import {
   Minus,
   DollarSign,
   ExternalLink,
+  Calendar,
+  Train,
+  Bus,
+  Ship,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -25,13 +29,11 @@ import {
   getIconComponent,
   Activity,
   Place,
+  TransportationType,
+  TransportItem,
+  ActivityCategory,
+  ItineraryItem,
 } from "@/data/destinations";
-
-// Add new interface for itinerary items
-interface ItineraryItem extends Activity {
-  country: string;
-  place: string;
-}
 
 // Add new helper component for collapsible category section
 const CategorySection = memo(
@@ -196,9 +198,12 @@ const CitySection = memo(
                   alt={place.name}
                   fill
                   className="object-cover hover:scale-105 transition-transform"
-                  onError={() =>
-                    console.error(`Failed to load image for ${place.name}`)
-                  }
+                  onError={(e) => {
+                    console.error(`Failed to load image for ${place.name}`);
+                    // Optionally set a fallback image
+                    (e.target as HTMLImageElement).src =
+                      "https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&q=80&w=1200";
+                  }}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
@@ -283,12 +288,14 @@ const DestinationCard = memo(
           }`}
           onClick={onSelect}
         >
-          <div
-            className="absolute inset-0 opacity-20 bg-cover bg-center"
-            style={{
-              backgroundImage: `url(${destination.coverImage})`,
-            }}
-          />
+          {destination.coverImage && (
+            <div
+              className="absolute inset-0 opacity-20 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${destination.coverImage})`,
+              }}
+            />
+          )}
 
           <div className="relative z-10">
             <div className="flex justify-between items-center">
@@ -349,6 +356,22 @@ const FloatingIcon = memo(
 
 FloatingIcon.displayName = "FloatingIcon";
 
+// Add new helper function at the top level
+const getTransportIcon = (type: TransportationType) => {
+  switch (type) {
+    case "flight":
+      return Plane;
+    case "train":
+      return Train;
+    case "bus":
+      return Bus;
+    case "ferry":
+      return Ship;
+    default:
+      return Plane;
+  }
+};
+
 // Add Itinerary component
 const Itinerary = memo(
   ({
@@ -358,7 +381,13 @@ const Itinerary = memo(
     items: ItineraryItem[];
     onRemoveItem: (item: ItineraryItem) => void;
   }) => {
-    const totalCost = items.reduce((sum, item) => sum + item.price, 0);
+    const totalCost = items.reduce((sum, item) => sum + (item.price || 0), 0);
+
+    // Separate activities and transport items
+    const activities = items.filter(
+      (item) => !item.type || item.type === "activity"
+    );
+    const transportItems = items.filter((item) => item.type === "transport");
 
     return (
       <div className="bg-white rounded-2xl shadow-xl p-6">
@@ -367,10 +396,49 @@ const Itinerary = memo(
         </h2>
         {items.length === 0 ? (
           <p className="text-gray-500">
-            Add activities to start building your itinerary!
+            Add activities and transportation to start building your itinerary!
           </p>
         ) : (
           <>
+            {transportItems.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-semibold text-lg text-gray-700 mb-2">
+                  Transportation
+                </h3>
+                <div className="space-y-2">
+                  {transportItems.map((item, idx) => {
+                    const TransportIcon = item.transportDetails
+                      ? getTransportIcon(item.transportDetails.type)
+                      : Plane;
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2">
+                          <TransportIcon className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-600">
+                            {item.transportDetails?.from} →{" "}
+                            {item.transportDetails?.to}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm">${item.price}</span>
+                          <button
+                            onClick={() => onRemoveItem(item)}
+                            className="text-rose-400 hover:text-rose-500"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4 mb-6">
               {Object.entries(
                 items.reduce((acc, item) => {
@@ -420,6 +488,7 @@ const Itinerary = memo(
                 </div>
               ))}
             </div>
+
             <div className="flex justify-between items-center pt-4 border-t">
               <span className="font-semibold text-gray-700">Total Cost:</span>
               <span className="text-xl font-bold text-rose-500">
@@ -438,8 +507,37 @@ Itinerary.displayName = "Itinerary";
 import TravelCosts from "./TravelCosts";
 import TravelRoute from "./TravelRoute";
 import TravelCalendar from "./TravelCalendar";
+import AccommodationCosts from "./AccommodationCosts";
+import React from "react";
 
-export default function TravelDreams() {
+// Add error boundary component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 text-red-500">
+          Something went wrong loading the travel content.
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const TravelDreams = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(
@@ -455,6 +553,10 @@ export default function TravelDreams() {
       date: string;
     }>
   >([]);
+  const [transportItems, setTransportItems] = useState<TransportItem[]>([]);
+  const [selectedAccommodations, setSelectedAccommodations] = useState<
+    Set<string>
+  >(new Set());
 
   const handleExpandToggle = useCallback(() => {
     setIsExpanded((prev) => !prev);
@@ -478,17 +580,46 @@ export default function TravelDreams() {
     });
   }, []);
 
-  const handleTransportCostSelect = useCallback((cost: { id: string }) => {
+  const handleTransportCostSelect = useCallback((item: ItineraryItem) => {
+    const itemId = `${item.country}-${item.transportDetails?.from}-${item.transportDetails?.to}`;
+
     setSelectedTransportCosts((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(cost.id)) {
-        newSet.delete(cost.id);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+        setItineraryItems((items) =>
+          items.filter(
+            (i) =>
+              `${i.country}-${i.transportDetails?.from}-${i.transportDetails?.to}` !==
+              itemId
+          )
+        );
       } else {
-        newSet.add(cost.id);
+        newSet.add(itemId);
+        setItineraryItems((items) => [...items, item]);
       }
       return newSet;
     });
   }, []);
+
+  const handleAccommodationSelect = useCallback((item: ItineraryItem) => {
+    const itemId = `${item.country}-${item.place}-${item.name}`;
+
+    setSelectedAccommodations((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+        setItineraryItems((items) =>
+          items.filter((i) => `${i.country}-${i.place}-${i.name}` !== itemId)
+        );
+      } else {
+        newSet.add(itemId);
+        setItineraryItems((items) => [...items, item]);
+      }
+      return newSet;
+    });
+  }, []);
+
   const handleCalendarEventUpdate = useCallback(
     (event: { name: string; date: string }) => {
       setCalendarEvents((prev) => [...prev, event]);
@@ -510,87 +641,100 @@ export default function TravelDreams() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-100 p-8">
-      <div className="max-w-6xl mx-auto space-y-12">
-        <header
-          className={`text-center mb-12 ${
-            showContent ? "animate-fade-in-up" : "opacity-0"
-          }`}
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-rose-600 mb-4 font-serif">
-            Our Next Adventure Together 🌸
-          </h1>
-          <p className="text-lg text-rose-500">
-            Let&apos;s make more beautiful memories in Asia
-          </p>
-          <div className="flex justify-center gap-2 mt-4">
-            {[Plane, Heart, Star].map((Icon, i) => (
-              <FloatingIcon key={i} Icon={Icon} delay={i + 1} />
-            ))}
-          </div>
-        </header>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="grid md:grid-cols-2 gap-8">
-              {destinations.map((destination) => (
-                <DestinationCard
-                  key={destination.country}
-                  destination={destination}
-                  isSelected={isExpanded}
-                  onSelect={handleExpandToggle}
-                  showContent={showContent}
-                  onActivitySelect={handleActivitySelect}
-                  selectedActivities={selectedActivities}
-                />
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-red-100 p-8">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <header
+            className={`text-center mb-12 ${
+              showContent ? "animate-fade-in-up" : "opacity-0"
+            }`}
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-rose-600 mb-4 font-serif">
+              Our Next Adventure Together 🌸
+            </h1>
+            <p className="text-lg text-rose-500">
+              Let&apos;s make more beautiful memories in Asia
+            </p>
+            <div className="flex justify-center gap-2 mt-4">
+              {[Plane, Heart, Star].map((Icon, i) => (
+                <FloatingIcon key={i} Icon={Icon} delay={i + 1} />
               ))}
             </div>
+          </header>
 
-            <div className="mt-8">
-              <TravelRoute />
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="grid md:grid-cols-2 gap-8">
+                {destinations.map((destination) => (
+                  <DestinationCard
+                    key={destination.country}
+                    destination={destination}
+                    isSelected={isExpanded}
+                    onSelect={handleExpandToggle}
+                    showContent={showContent}
+                    onActivitySelect={handleActivitySelect}
+                    selectedActivities={selectedActivities}
+                  />
+                ))}
+              </div>
+
+              <div className="mt-8">
+                <TravelRoute itineraryItems={itineraryItems} />
+              </div>
+
+              <div className="mt-8">
+                <TravelCosts
+                  onSelectCost={handleTransportCostSelect}
+                  selectedCosts={selectedTransportCosts}
+                />
+              </div>
+
+              <div className="mt-8">
+                <AccommodationCosts
+                  onSelectAccommodation={handleAccommodationSelect}
+                  selectedAccommodations={selectedAccommodations}
+                />
+              </div>
             </div>
 
-            <div className="mt-8">
-              <TravelCosts
-                onSelectCost={handleTransportCostSelect}
-                selectedCosts={selectedTransportCosts}
-              />
+            <div className="lg:col-span-1 space-y-8">
+              <div className="lg:sticky lg:top-8">
+                <Itinerary
+                  items={itineraryItems}
+                  onRemoveItem={(item) => handleActivitySelect(item)}
+                />
+              </div>
+
+              <div className="mt-8">
+                <TravelCalendar
+                  items={itineraryItems}
+                  onUpdateEvent={handleCalendarEventUpdate}
+                  onRemoveEvent={handleCalendarEventRemove}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="lg:col-span-1 space-y-8">
-            <div className="lg:sticky lg:top-8">
-              <Itinerary
-                items={itineraryItems}
-                onRemoveItem={(item) => handleActivitySelect(item)}
-              />
+          <footer
+            className={`text-center mt-12 ${
+              showContent ? "animate-fade-in-up" : "opacity-0"
+            }`}
+          >
+            <p className="text-rose-500 font-medium">
+              Let&apos;s make these dreams come true together 💝
+            </p>
+            <div className="flex justify-center gap-4 mt-4">
+              {[Map, Camera, Utensils, Coffee, Moon].map((Icon, i) => (
+                <FloatingIcon key={i} Icon={Icon} delay={i + 1} />
+              ))}
             </div>
-
-            <div className="mt-8">
-              <TravelCalendar
-                items={itineraryItems}
-                onUpdateEvent={handleCalendarEventUpdate}
-                onRemoveEvent={handleCalendarEventRemove}
-              />
-            </div>
-          </div>
+          </footer>
         </div>
-
-        <footer
-          className={`text-center mt-12 ${
-            showContent ? "animate-fade-in-up" : "opacity-0"
-          }`}
-        >
-          <p className="text-rose-500 font-medium">
-            Let&apos;s make these dreams come true together 💝
-          </p>
-          <div className="flex justify-center gap-4 mt-4">
-            {[Map, Camera, Utensils, Coffee, Moon].map((Icon, i) => (
-              <FloatingIcon key={i} Icon={Icon} delay={i + 1} />
-            ))}
-          </div>
-        </footer>
       </div>
-    </div>
+    </ErrorBoundary>
   );
-}
+};
+
+TravelDreams.displayName = "TravelDreams";
+
+export default TravelDreams;

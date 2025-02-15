@@ -11,6 +11,8 @@ import BubblePop from "../components/BubblePop";
 import LetterDisplay from "../components/LetterDisplay";
 import LoveWordle from "../components/LoveWordle";
 import CelebrationScreen from "../components/CelebrationScreen";
+import { useRouter } from "next/navigation";
+import { Plane } from "lucide-react";
 
 // Dynamically import PhotoGallery with ssr disabled
 const PhotoGallery = dynamic(() => import("../components/PhotoGallery"), {
@@ -40,6 +42,8 @@ export default function Home() {
 
   const [showFooter, setShowFooter] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+
+  const router = useRouter();
 
   const handleScoreChange = (
     game: keyof typeof showLoveLetters,
@@ -236,6 +240,19 @@ export default function Home() {
             onLetterClose={() => setSelectedLetter(null)}
           />
         )}
+
+        {/* Add new travel dreams button section before the footer */}
+        <section className="scroll-animate fade-in-up text-center">
+          <button
+            onClick={() => router.push("/travel-dreams")}
+            className="bg-rose-500 text-white px-8 py-3 rounded-xl
+              hover:bg-rose-600 transition-all transform hover:scale-105
+              active:scale-95 font-medium group inline-flex items-center gap-2"
+          >
+            Plan Our Next Adventure
+            <Plane className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+          </button>
+        </section>
 
         <footer
           className={`text-center text-pink-700 mt-8 scroll-animate fade-in-up md:opacity-100 transition-opacity duration-300 ${

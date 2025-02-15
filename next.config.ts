@@ -23,7 +23,11 @@ const config: NextConfig = {
         pathname: "/**",
       },
     ],
-    domains: ["images.unsplash.com"],
+    domains: ["images.unsplash.com", "i.ytimg.com", "images.pexels.com"],
+  },
+  // Add this to help with build-time errors
+  typescript: {
+    ignoreBuildErrors: false,
   },
 };
 

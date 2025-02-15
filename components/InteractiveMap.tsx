@@ -13,10 +13,16 @@ interface InteractiveMapProps {
   locations: Location[];
   onLocationSelect?: (location: Location) => void;
   selectedIndex?: number;
+  children?: React.ReactNode;
 }
 
 const InteractiveMap = memo(
-  ({ locations, onLocationSelect, selectedIndex }: InteractiveMapProps) => {
+  ({
+    locations,
+    onLocationSelect,
+    selectedIndex,
+    children,
+  }: InteractiveMapProps) => {
     const mapRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<google.maps.Marker[]>([]);
     const infoWindowsRef = useRef<google.maps.InfoWindow[]>([]);
@@ -179,6 +185,7 @@ const InteractiveMap = memo(
               </div>
             </div>
           )}
+        {children}
       </div>
     );
   }

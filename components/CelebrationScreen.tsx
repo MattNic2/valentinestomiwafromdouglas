@@ -45,7 +45,7 @@ export default function CelebrationScreen() {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]">
       <div className="max-w-2xl w-full mx-4">
         <div className="bg-white rounded-2xl p-8 text-center relative overflow-hidden">
           {/* Animated hearts background */}

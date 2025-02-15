@@ -90,7 +90,7 @@ const TravelCalendar = memo(
         duration: item.duration,
         country: item.country,
         place: item.place,
-        price: item.price,
+        price: item.price || 0,
       };
 
       setEvents((prev) => [...prev, newEvent]);

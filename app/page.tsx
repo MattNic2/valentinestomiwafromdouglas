@@ -10,6 +10,7 @@ import LoveLetter from "../components/LoveLetter";
 import BubblePop from "../components/BubblePop";
 import LetterDisplay from "../components/LetterDisplay";
 import LoveWordle from "../components/LoveWordle";
+import CelebrationScreen from "../components/CelebrationScreen";
 
 // Dynamically import PhotoGallery with ssr disabled
 const PhotoGallery = dynamic(() => import("../components/PhotoGallery"), {
@@ -38,6 +39,7 @@ export default function Home() {
   const [selectedLetter, setSelectedLetter] = useState<GameType | null>(null);
 
   const [showFooter, setShowFooter] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const handleScoreChange = (
     game: keyof typeof showLoveLetters,
@@ -98,8 +100,19 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Add effect to check for all letters unlocked
+  useEffect(() => {
+    const allUnlocked = Object.values(showLoveLetters).every(Boolean);
+    if (allUnlocked) {
+      setShowCelebration(true);
+    }
+  }, [showLoveLetters]);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 to-red-100 p-8 pb-48">
+      {/* Add CelebrationScreen at the root level */}
+      {showCelebration && <CelebrationScreen />}
+
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Header Section with Fade-in */}
         <section className="mb-12 opacity-0 animate-[fadeIn_1s_ease-in_forwards]">

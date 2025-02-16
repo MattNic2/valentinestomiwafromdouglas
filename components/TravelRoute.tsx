@@ -293,6 +293,18 @@ const ItineraryMarker = memo(
     onMouseLeave,
     style,
   }: ItineraryMarkerProps) => {
+    // Determine marker style based on item category
+    const getMarkerStyle = () => {
+      switch (item.category) {
+        case "Accommodation":
+          return "bg-blue-400 hover:bg-blue-500";
+        case "Transportation":
+          return "bg-green-400 hover:bg-green-500";
+        default:
+          return "bg-rose-400 hover:bg-rose-500";
+      }
+    };
+
     return (
       <div
         className={`absolute transform -translate-x-1/2 -translate-y-1/2 
@@ -301,8 +313,12 @@ const ItineraryMarker = memo(
         style={style}
       >
         <div
-          className={`p-2 rounded-full cursor-pointer
-          ${isHovered ? "bg-rose-500" : "bg-rose-400"}`}
+          className={`p-2 rounded-full cursor-pointer shadow-md
+          ${
+            isHovered
+              ? getMarkerStyle().replace("400", "500")
+              : getMarkerStyle()
+          }`}
           onClick={onClick}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
@@ -320,6 +336,11 @@ const ItineraryMarker = memo(
               {item.duration && (
                 <div className="text-gray-500 text-xs">
                   Duration: {item.duration}
+                </div>
+              )}
+              {item.category && (
+                <div className="text-gray-500 text-xs mt-1">
+                  {item.category}
                 </div>
               )}
               {item.bookingUrl && (
@@ -348,10 +369,34 @@ const TravelRoute = memo(
     const [selectedStopIndex, setSelectedStopIndex] = useState<number>(-1);
     const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
-    // Filter items that have valid coordinates
-    const mappableItems = itineraryItems.filter(
-      (item) => cityCoordinates[item.place]
-    );
+    // Group itinerary items by location for better organization
+    const itemsByLocation = itineraryItems.reduce((acc, item) => {
+      const coords = cityCoordinates[item.place];
+      if (coords) {
+        if (!acc[item.place]) {
+          acc[item.place] = [];
+        }
+        acc[item.place].push(item);
+      }
+      return acc;
+    }, {} as Record<string, ItineraryItem[]>);
+
+    // Calculate marker positions with offset to prevent overlap
+    const getMarkerPosition = (place: string, index: number, total: number) => {
+      const baseCoords = cityCoordinates[place];
+      if (!baseCoords) return null;
+
+      // If there's only one item, place it at the center
+      if (total === 1) return baseCoords;
+
+      // Calculate offset based on index and total items
+      const radius = 0.5; // Adjust this value to change the spread
+      const angle = (2 * Math.PI * index) / total;
+      const offsetX = radius * Math.cos(angle);
+      const offsetY = radius * Math.sin(angle);
+
+      return [baseCoords[0] + offsetX, baseCoords[1] + offsetY];
+    };
 
     const totalCost = routeData.reduce(
       (sum, stop) => sum + stop.transport.price,
@@ -459,32 +504,34 @@ const TravelRoute = memo(
             }}
             selectedIndex={selectedStopIndex}
           >
-            {/* Add itinerary markers */}
-            {mappableItems.map((item) => {
-              const coords = cityCoordinates[item.place];
-              if (!coords) return null;
+            {/* Render itinerary markers */}
+            {Object.entries(itemsByLocation).map(([place, items]) =>
+              items.map((item, idx) => {
+                const coords = getMarkerPosition(place, idx, items.length);
+                if (!coords) return null;
 
-              const itemId = `${item.country}-${item.place}-${item.name}`;
+                const itemId = `${item.country}-${item.place}-${item.name}`;
 
-              return (
-                <ItineraryMarker
-                  key={itemId}
-                  item={item}
-                  isHovered={hoveredItemId === itemId}
-                  onClick={() => {
-                    if (item.bookingUrl) {
-                      window.open(item.bookingUrl, "_blank");
-                    }
-                  }}
-                  onMouseEnter={() => setHoveredItemId(itemId)}
-                  onMouseLeave={() => setHoveredItemId(null)}
-                  style={{
-                    left: `${coords[1]}%`,
-                    top: `${coords[0]}%`,
-                  }}
-                />
-              );
-            })}
+                return (
+                  <ItineraryMarker
+                    key={itemId}
+                    item={item}
+                    isHovered={hoveredItemId === itemId}
+                    onClick={() => {
+                      if (item.bookingUrl) {
+                        window.open(item.bookingUrl, "_blank");
+                      }
+                    }}
+                    onMouseEnter={() => setHoveredItemId(itemId)}
+                    onMouseLeave={() => setHoveredItemId(null)}
+                    style={{
+                      left: `${coords[1]}%`,
+                      top: `${coords[0]}%`,
+                    }}
+                  />
+                );
+              })
+            )}
           </InteractiveMap>
         </div>
 

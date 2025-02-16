@@ -13,11 +13,53 @@ import LoveWordle from "../components/LoveWordle";
 import CelebrationScreen from "../components/CelebrationScreen";
 import { useRouter } from "next/navigation";
 import { Plane } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import AuthModal from "../components/AuthModal";
+import FloatingHearts from "../components/FloatingHearts";
+import HeartTrail from "../components/HeartTrail";
 
 // Dynamically import PhotoGallery with ssr disabled
 const PhotoGallery = dynamic(() => import("../components/PhotoGallery"), {
   ssr: false,
 });
+
+// Move loadGameProgress outside of the component or use useCallback
+const loadGameProgress = async (user: any, setShowLoveLetters: any) => {
+  if (!user) return;
+
+  try {
+    const { data, error } = await supabase
+      .from("game_progress")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // Initialize new progress record if none exists
+        const initialProgress = {
+          user_id: user.id,
+          progress: {
+            snake: false,
+            quiz: false,
+            memory: false,
+            scramble: false,
+            bubble: false,
+            wordle: false,
+            final: false,
+          },
+        };
+        await supabase.from("game_progress").insert(initialProgress);
+      } else {
+        throw error;
+      }
+    } else if (data) {
+      setShowLoveLetters(data.progress);
+    }
+  } catch (error) {
+    console.error("Error managing game progress:", error);
+  }
+};
 
 export default function Home() {
   type GameType =
@@ -26,7 +68,11 @@ export default function Home() {
     | "memory"
     | "scramble"
     | "bubble"
-    | "wordle";
+    | "wordle"
+    | "final";
+
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   const [showLoveLetters, setShowLoveLetters] = useState<
     Record<GameType, boolean>
@@ -37,28 +83,119 @@ export default function Home() {
     scramble: false,
     bubble: false,
     wordle: false,
+    final: false,
   });
   const [selectedLetter, setSelectedLetter] = useState<GameType | null>(null);
 
   const [showFooter, setShowFooter] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showFinalLetter, setShowFinalLetter] = useState(false);
 
   const router = useRouter();
 
-  const handleScoreChange = (
+  // Update the auth effect with proper dependency management
+  useEffect(() => {
+    let mounted = true;
+    let authSubscription: any = null;
+
+    const handleSession = async (session: any) => {
+      if (!mounted) return;
+
+      const newUser = session?.user ?? null;
+      setUser(newUser);
+
+      if (newUser) {
+        await loadGameProgress(newUser, setShowLoveLetters);
+      } else {
+        setShowLoveLetters({
+          snake: false,
+          quiz: false,
+          memory: false,
+          scramble: false,
+          bubble: false,
+          wordle: false,
+          final: false,
+        });
+      }
+    };
+
+    // Set up auth subscription
+    const setupSubscription = async () => {
+      const { data } = await supabase.auth.getSession();
+      await handleSession(data.session);
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event: string, session: any) =>
+        handleSession(session)
+      );
+      authSubscription = subscription;
+    };
+
+    setupSubscription();
+
+    return () => {
+      mounted = false;
+      if (authSubscription) {
+        authSubscription.unsubscribe();
+      }
+    };
+  }, []); // Empty dependency array since we don't want this to re-run
+
+  // Update handleScoreChange to be more efficient
+  const handleScoreChange = async (
     game: keyof typeof showLoveLetters,
     score: number
   ) => {
-    if (
-      (game === "snake" && score >= 15) ||
-      (game === "quiz" && score >= 10) ||
-      (game === "memory" && score >= 16) ||
-      (game === "scramble" && score >= 10) ||
-      (game === "bubble" && score >= 20) ||
-      (game === "wordle" && score >= 6)
-    ) {
-      setShowLoveLetters((prev) => ({ ...prev, [game]: true }));
+    const thresholds: Record<GameType, number> = {
+      snake: 15,
+      quiz: 10,
+      memory: 16,
+      scramble: 10,
+      bubble: 20,
+      wordle: 6,
+      final: 0,
+    };
+
+    if (score >= thresholds[game]) {
+      const newProgress = { ...showLoveLetters, [game]: true };
+
+      if (user) {
+        try {
+          const { error } = await supabase.from("game_progress").upsert(
+            {
+              user_id: user.id,
+              progress: newProgress,
+            },
+            {
+              onConflict: "user_id",
+            }
+          );
+
+          if (!error) {
+            setShowLoveLetters(newProgress);
+          } else {
+            console.error("Error saving progress:", error);
+          }
+        } catch (error) {
+          console.error("Error saving progress:", error);
+        }
+      }
     }
+  };
+
+  // Add sign out handler
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setShowLoveLetters({
+      snake: false,
+      quiz: false,
+      memory: false,
+      scramble: false,
+      bubble: false,
+      wordle: false,
+      final: false,
+    });
   };
 
   // Add scroll animation logic
@@ -104,18 +241,55 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Add effect to check for all letters unlocked
+  // Update effect to handle final letter unlock
   useEffect(() => {
     const allUnlocked = Object.values(showLoveLetters).every(Boolean);
     if (allUnlocked) {
       setShowCelebration(true);
+      setShowFinalLetter(true);
+      // Update showLoveLetters to include final letter
+      setShowLoveLetters((prev) => ({
+        ...prev,
+        final: true,
+      }));
     }
   }, [showLoveLetters]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 to-red-100 p-8 pb-48">
+      <FloatingHearts />
+      <HeartTrail />
+
+      {/* Update auth section with user email */}
+      <div className="absolute top-4 right-4 flex items-center gap-4">
+        {user ? (
+          <div className="flex items-center gap-4">
+            <span className="text-rose-600 font-medium">
+              Hello, {user.email}
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="bg-rose-500 text-white px-4 py-2 rounded hover:bg-rose-600 transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowAuthModal(true)}
+            className="bg-rose-500 text-white px-4 py-2 rounded hover:bg-rose-600 transition-colors"
+          >
+            Sign In
+          </button>
+        )}
+      </div>
+
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+
       {/* Add CelebrationScreen at the root level */}
-      {showCelebration && <CelebrationScreen />}
+      {showCelebration && (
+        <CelebrationScreen onClose={() => setShowCelebration(false)} />
+      )}
 
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Header Section with Fade-in */}
@@ -123,8 +297,10 @@ export default function Home() {
           <header className="text-center mb-12">
             <div className="relative flex flex-col items-center text-center">
               {/* Floating Hearts Background */}
-              <h1 className="text-4xl md:text-6xl font-bold text-rose-600 mb-4 font-serif drop-shadow-md">
-                Douglas &amp; Miwa&apos;s Love Games
+              <h1 className="text-4xl md:text-6xl font-bold text-rose-600 mb-4 font-serif drop-shadow-md group">
+                Douglas{" "}
+                <span className="inline-block animate-heart-pulse">❤️</span>{" "}
+                Miwa&apos;s Love Games
               </h1>
             </div>
 
@@ -230,6 +406,7 @@ export default function Home() {
           <LetterDisplay
             unlockedGames={showLoveLetters}
             onLetterSelect={setSelectedLetter}
+            showFinalLetter={showFinalLetter}
           />
         </div>
 

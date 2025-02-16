@@ -128,7 +128,7 @@ export default function WordScramble({
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [gameOver, currentWord, LifeLostReset, timeLeft]);
+  }, [gameOver, currentWord, timeLeft]);
 
   // Update initial game setup
   useEffect(() => {

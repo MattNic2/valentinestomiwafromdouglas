@@ -10,7 +10,14 @@ import {
   Move,
 } from "lucide-react";
 
-type GameType = "snake" | "quiz" | "memory" | "scramble" | "bubble" | "wordle";
+type GameType =
+  | "snake"
+  | "quiz"
+  | "memory"
+  | "scramble"
+  | "bubble"
+  | "wordle"
+  | "final";
 
 interface GameIcon {
   icon: React.ElementType;
@@ -18,13 +25,14 @@ interface GameIcon {
   label: string;
 }
 
-const gameIcons: Record<GameType, GameIcon> = {
+const gameIcons: Record<Partial<GameType>, GameIcon> = {
   snake: { icon: Sparkles, requiredScore: 15, label: "Snake Game" },
   quiz: { icon: BookOpen, requiredScore: 6, label: "Love Quiz" },
   memory: { icon: Brain, requiredScore: 16, label: "Memory Match" },
   scramble: { icon: Type, requiredScore: 5, label: "Word Scramble" },
   bubble: { icon: Heart, requiredScore: 20, label: "Bubble Pop" },
   wordle: { icon: Type, requiredScore: 6, label: "Love Words" },
+  final: { icon: Heart, requiredScore: 0, label: "Final Letter" },
 };
 
 interface Position {
@@ -37,11 +45,13 @@ interface Position {
 interface LetterDisplayProps {
   unlockedGames: Record<GameType, boolean>;
   onLetterSelect: (game: GameType) => void;
+  showFinalLetter?: boolean;
 }
 
 export default function LetterDisplay({
   unlockedGames,
   onLetterSelect,
+  showFinalLetter = false,
 }: LetterDisplayProps) {
   const [hoveredGame, setHoveredGame] = useState<GameType | null>(null);
 
@@ -114,7 +124,7 @@ export default function LetterDisplay({
 
   return (
     <div
-      className="fixed bottom-4 left-0 right-0 z-10 cursor-move"
+      className="fixed bottom-4 left-0 right-0 z-[70] cursor-move"
       style={{
         transform: `translate(${position.x}px, ${position.y}px) scale(${position.scale}) rotate(${position.rotation}deg)`,
         transition: isDragging ? "none" : "transform 0.3s ease",
@@ -134,15 +144,16 @@ export default function LetterDisplay({
             <div className="flex items-center gap-2">
               <Move className="w-5 h-5 text-rose-400" />
               <div className="text-sm text-rose-400">
-                {Object.values(unlockedGames).filter(Boolean).length} / 6
-                Unlocked
+                {Object.values(unlockedGames).filter(Boolean).length} /{" "}
+                {showFinalLetter ? "7" : "6"} Unlocked
               </div>
             </div>
           </div>
 
           <div className="flex justify-around gap-6">
-            {(Object.entries(gameIcons) as [GameType, GameIcon][]).map(
-              ([game, { icon: Icon, label, requiredScore }]) => (
+            {(Object.entries(gameIcons) as [GameType, GameIcon][])
+              .filter(([game]) => game !== "final" || showFinalLetter)
+              .map(([game, { icon: Icon, label, requiredScore }]) => (
                 <div key={game} className="relative group">
                   <button
                     onClick={() => handleLetterClick(game, unlockedGames[game])}
@@ -208,8 +219,7 @@ export default function LetterDisplay({
                     {label}
                   </span>
                 </div>
-              )
-            )}
+              ))}
           </div>
         </div>
       </div>

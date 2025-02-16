@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-type GameType = "snake" | "quiz" | "memory" | "scramble" | "bubble" | "wordle";
+type GameType =
+  | "snake"
+  | "quiz"
+  | "memory"
+  | "scramble"
+  | "bubble"
+  | "wordle"
+  | "final";
 
 interface LoveLetterProps {
   game: GameType;
@@ -62,6 +69,19 @@ Even these words feel inadequate to express just how beautiful you are to me. Yo
 
 Forever mesmerized by you,
 Douglas 💝`,
+
+  final: `My Dearest Miwa,
+
+Congratulations on completing all the games and unlocking every love letter! This special message is just for you, my amazing girlfriend who went above and beyond to discover all the hidden treasures I created.
+
+Your dedication, intelligence, and playful spirit never cease to amaze me. Just like you solved these puzzles, you've solved the puzzle of my heart - though that one was much easier, as it was yours from the moment we met.
+
+This journey through the games is just like our relationship - full of fun, challenges, and sweet rewards. And just like these letters, my love for you is something you can always come back to.
+
+Thank you for playing, for loving, and for being the extraordinary person you are. You make every day feel like a celebration.
+
+With infinite love and admiration,
+Douglas 💝`,
 };
 
 export default function LoveLetter({ game, onLetterClose }: LoveLetterProps) {
@@ -93,7 +113,7 @@ export default function LoveLetter({ game, onLetterClose }: LoveLetterProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[80]"
           onClick={handleClose}
         >
           <motion.div

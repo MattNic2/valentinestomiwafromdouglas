@@ -58,7 +58,7 @@ const questions: Question[] = [
   {
     q: "What is Douglas's favorite ice cream?",
     a: "Dippon Dots",
-    choices: ["Dippon Dots", "Soft Serve", "Popsickel", "Bingsu"],
+    choices: ["Dippon Dots", "Soft Serve", "Popsicle", "Bingsu"],
   },
   {
     q: "What is our favorite vacation together (even though we weren't alone)?",

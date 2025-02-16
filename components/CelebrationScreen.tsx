@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
-import { Plane } from "lucide-react";
+import { Plane, X } from "lucide-react";
 
-export default function CelebrationScreen() {
+interface CelebrationScreenProps {
+  onClose: () => void;
+}
+
+export default function CelebrationScreen({ onClose }: CelebrationScreenProps) {
   const [showMessage, setShowMessage] = useState(false);
   const router = useRouter();
 
@@ -45,9 +49,17 @@ export default function CelebrationScreen() {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60]">
       <div className="max-w-2xl w-full mx-4">
         <div className="bg-white rounded-2xl p-8 text-center relative overflow-hidden">
+          {/* Add close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-rose-400 hover:text-rose-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
           {/* Animated hearts background */}
           <div className="absolute inset-0 pointer-events-none">
             {Array.from({ length: 20 }).map((_, i) => (

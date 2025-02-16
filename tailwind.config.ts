@@ -57,12 +57,37 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        "float-heart": {
+          "0%, 100%": { transform: "translateY(0) scale(1)" },
+          "50%": { transform: "translateY(-100px) scale(1.1)" },
+        },
+        "heart-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.1)", opacity: "0.8" },
+        },
+        "heart-fade": {
+          "0%": {
+            transform: "translateY(0) scale(1)",
+            opacity: "0.8",
+          },
+          "50%": {
+            transform: "translateY(-20px) scale(0.9)",
+            opacity: "0.4",
+          },
+          "100%": {
+            transform: "translateY(-40px) scale(0.8)",
+            opacity: "0",
+          },
+        },
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
       },
       animation: {
+        "float-heart": "float-heart 12s ease-in-out infinite",
+        "heart-pulse": "heart-pulse 1.5s ease-in-out infinite",
+        "heart-fade": "heart-fade 1s ease-out forwards",
         fadeIn: "fadeIn 1s ease-in forwards",
       },
     },

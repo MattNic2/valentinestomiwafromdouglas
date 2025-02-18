@@ -257,8 +257,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 to-red-100 p-8 pb-48">
-      <FloatingHearts />
-      <HeartTrail />
+      {/* Update FloatingHearts and HeartTrail with pointer-events-none class on mobile */}
+      <div className="md:pointer-events-auto pointer-events-none">
+        <FloatingHearts />
+        <HeartTrail />
+      </div>
 
       {/* Update auth section with user email */}
       <div className="absolute top-4 right-4 flex items-center gap-4">

@@ -4,6 +4,19 @@ import { Eye, EyeOff } from "lucide-react";
 
 type AuthMode = "signin" | "signup" | "forgot";
 
+// Add password requirements type
+type PasswordRequirement = {
+  regex: RegExp;
+  text: string;
+};
+
+const passwordRequirements: PasswordRequirement[] = [
+  { regex: /.{8,}/, text: "8+ characters" },
+  { regex: /[A-Z]/, text: "One uppercase" },
+  { regex: /[a-z]/, text: "One lowercase" },
+  { regex: /[0-9]/, text: "One number" },
+];
+
 export default function AuthModal({ onClose }: { onClose: () => void }) {
   const [mode, setMode] = useState<AuthMode>("signin");
   const [email, setEmail] = useState("");
@@ -14,6 +27,41 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Add new state for password validation
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  // Add new state for real-time validation
+  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  const checkPasswordRequirement = (requirement: PasswordRequirement) => {
+    return requirement.regex.test(password);
+  };
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const updatePasswordStrength = (password: string) => {
+    const strength = passwordRequirements.filter((req) =>
+      req.regex.test(password)
+    ).length;
+    setPasswordStrength(strength);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setIsValidEmail(validateEmail(newEmail));
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    updatePasswordStrength(newPassword);
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +85,17 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Check all password requirements
+    const passwordValid = passwordRequirements.every((requirement) =>
+      checkPasswordRequirement(requirement)
+    );
+
+    if (!passwordValid) {
+      setError("Password does not meet all requirements");
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -97,10 +156,20 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
         <input
           type={show ? "text" : "password"}
           value={value}
-          onChange={onChange}
-          className="w-full p-2 border rounded pr-10"
+          onChange={!confirm ? handlePasswordChange : onChange}
+          className={`w-full p-2 border rounded pr-10 ${
+            !confirm && passwordStrength > 0 && passwordStrength < 4
+              ? "border-yellow-400"
+              : !confirm && passwordStrength === 4
+              ? "border-green-500"
+              : "border-gray-300"
+          }`}
           required
           name={confirm ? "confirm-password" : "password"}
+          onFocus={() => !confirm && setPasswordFocused(true)}
+          onBlur={() =>
+            setTimeout(() => !confirm && setPasswordFocused(false), 200)
+          }
         />
         <button
           type="button"
@@ -110,6 +179,37 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
           {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
         </button>
       </div>
+      {!confirm && passwordFocused && (
+        <div className="mt-2 space-y-1 bg-white p-2 rounded shadow-lg border">
+          <div className="mb-2">
+            <div className="h-1.5 bg-gray-200 rounded-full">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${
+                  passwordStrength === 4
+                    ? "bg-green-500"
+                    : passwordStrength >= 2
+                    ? "bg-yellow-400"
+                    : "bg-red-400"
+                }`}
+                style={{ width: `${(passwordStrength / 4) * 100}%` }}
+              />
+            </div>
+          </div>
+          {passwordRequirements.map((requirement, index) => (
+            <div
+              key={index}
+              className={`text-sm flex items-center space-x-2 ${
+                checkPasswordRequirement(requirement)
+                  ? "text-green-600"
+                  : "text-gray-500"
+              }`}
+            >
+              <span>{checkPasswordRequirement(requirement) ? "✓" : "○"}</span>
+              <span>{requirement.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -148,10 +248,17 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded"
+              onChange={handleEmailChange}
+              className={`w-full p-2 border rounded ${
+                !isValidEmail && email ? "border-red-500" : "border-gray-300"
+              }`}
               required
             />
+            {!isValidEmail && email && (
+              <p className="text-red-500 text-sm mt-1">
+                Please enter a valid email
+              </p>
+            )}
           </div>
 
           {mode !== "forgot" && (

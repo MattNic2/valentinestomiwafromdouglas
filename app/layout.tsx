@@ -13,6 +13,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com";
+
 export const metadata: Metadata = {
   title: "To My Love Miwa",
   description: "Happy Valentines Day bb from Douglas",
@@ -21,11 +23,12 @@ export const metadata: Metadata = {
     apple: "/tomylovemiwa-icon.png",
   },
   openGraph: {
+    type: "website",
     title: "To My Love Miwa",
     description: "Happy Valentines Day bb from Douglas",
     images: [
       {
-        url: "/Miwa_collage.jpg",
+        url: `${baseUrl}/Miwa_collage.jpg`,
         width: 1200,
         height: 630,
         alt: "Douglas and Miwa's Valentine's Day",
@@ -36,7 +39,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "To My Love Miwa",
     description: "Happy Valentines Day bb from Douglas",
-    images: ["/Miwa_collage.jpg"],
+    images: [`${baseUrl}/Miwa_collage.jpg`],
+    creator: "@seoking23",
   },
 };
 

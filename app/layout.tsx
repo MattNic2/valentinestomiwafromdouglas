@@ -13,47 +13,53 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://tomylovemiwa.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://tomylovemiwa.com/";
 
 export const metadata: Metadata = {
-  title: "To My Love Miwa",
-  description: "Happy Valentines Day bb from Douglas",
+  title: "To My Love Miwa | A Valentine's Journey",
+  description:
+    "A digital love letter celebrating our beautiful journey together. Explore our memories, adventures, and the countless reasons why every day with you is magical. ❤️",
   icons: {
     icon: "/favicon.ico",
     apple: "/tomylovemiwa-icon.png",
   },
   openGraph: {
-    type: "website",
-    title: "To My Love Miwa",
-    description: "Happy Valentines Day bb from Douglas",
+    title: "To My Love Miwa | Our Love Story",
+    description:
+      "Join us on a heartwarming journey through memories, laughter, and endless love. A Valentine's celebration of our special bond. 💝",
     images: [
       {
-        url: `/Miwa_collage.jpg`,
+        url: `${baseUrl}/Miwa_collage.jpg`,
         width: 1200,
         height: 630,
-        alt: "Douglas and Miwa's Valentine's Day",
+        alt: "A beautiful collage of Douglas and Miwa's precious moments together, and some games of love",
       },
     ],
+    type: "website",
+    siteName: "To My Love Miwa",
   },
   twitter: {
     card: "summary_large_image",
-    title: "To My Love Miwa",
-    description: "Happy Valentines Day bb from Douglas",
+    title: "To My Love Miwa | A Valentine's Celebration 💕",
+    description: "Every moment with you is a treasure...",
+    creator: "@seoking23",
     images: [
       {
-        url: `/Miwa_collage.jpg`,
+        url: `${baseUrl}/Miwa_collage.jpg`,
         width: 1200,
         height: 630,
-        alt: "Douglas and Miwa's Valentine's Day",
+        alt: "A heartwarming collection of Douglas and Miwa's most precious moments, and some games of love",
       },
     ],
-    creator: "@seoking23",
   },
-  other: {
-    "x-image": [`/Miwa_collage.jpg`],
-    "x-title": "To My Love Miwa",
-    "x-description": "Happy Valentines Day bb from Douglas",
-  },
+  keywords: [
+    "love story",
+    "Valentine's Day",
+    "romance",
+    "couple",
+    "memories",
+    "digital love letter",
+  ],
 };
 
 export default function RootLayout({

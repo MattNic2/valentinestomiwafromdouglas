@@ -8,6 +8,9 @@ import {
   Lock,
   X,
   Move,
+  Eye,
+  EyeOff,
+  Mail,
 } from "lucide-react";
 
 type GameType =
@@ -46,14 +49,19 @@ interface LetterDisplayProps {
   unlockedGames: Record<GameType, boolean>;
   onLetterSelect: (game: GameType) => void;
   showFinalLetter?: boolean;
+  isMobile?: boolean;
+  showFooter?: boolean;
 }
 
 export default function LetterDisplay({
   unlockedGames,
   onLetterSelect,
   showFinalLetter = false,
+  isMobile = false,
+  showFooter = true,
 }: LetterDisplayProps) {
   const [hoveredGame, setHoveredGame] = useState<GameType | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // New state for position and movement
   const [position, setPosition] = useState<Position>({
@@ -121,6 +129,85 @@ export default function LetterDisplay({
       }));
     }
   };
+
+  if (isMobile && !showFooter) {
+    return (
+      <div className="fixed bottom-4 right-4 z-[70]">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="bg-white/95 rounded-full p-4 shadow-lg border border-rose-100 relative"
+        >
+          <Mail
+            className={`w-6 h-6 text-rose-500 ${
+              isExpanded ? "hidden" : "block"
+            }`}
+          />
+          <Eye
+            className={`w-6 h-6 text-rose-500 ${
+              isExpanded ? "block" : "hidden"
+            }`}
+          />
+          <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+            {Object.values(unlockedGames).filter(Boolean).length}
+          </span>
+        </button>
+
+        {/* Expanded view */}
+        {isExpanded && (
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[75]"
+            onClick={() => setIsExpanded(false)}
+          >
+            <div
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold text-rose-600">
+                  Love Letters
+                </h3>
+                <button onClick={() => setIsExpanded(false)}>
+                  <X className="w-6 h-6 text-rose-400" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                {(Object.entries(gameIcons) as [GameType, GameIcon][])
+                  .filter(([game]) => game !== "final" || showFinalLetter)
+                  .map(([game, { icon: Icon, label }]) => (
+                    <button
+                      key={game}
+                      onClick={() => {
+                        if (unlockedGames[game]) {
+                          onLetterSelect(game);
+                          setIsExpanded(false);
+                        }
+                      }}
+                      className={`
+                        aspect-square rounded-xl p-2 flex flex-col items-center justify-center gap-2
+                        ${
+                          unlockedGames[game]
+                            ? "bg-rose-100 text-rose-500"
+                            : "bg-gray-100 text-gray-400"
+                        }
+                      `}
+                    >
+                      <Icon className="w-6 h-6" />
+                      <span className="text-xs text-center line-clamp-1">
+                        {label}
+                      </span>
+                      {!unlockedGames[game] && (
+                        <Lock className="w-4 h-4 absolute" />
+                      )}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

@@ -93,6 +93,25 @@ export default function Home() {
 
   const router = useRouter();
 
+  // Add this near the top with other state variables
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Add this useEffect to handle screen size detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is standard mobile breakpoint
+    };
+
+    // Check initial size
+    checkMobile();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   // Update the auth effect with proper dependency management
   useEffect(() => {
     let mounted = true;
@@ -399,17 +418,20 @@ export default function Home() {
         </section>
 
         {/* Update LetterDisplay container */}
+
         <div
           className={`
             md:fixed md:bottom-4 md:left-1/2 md:transform md:-translate-x-1/2 md:z-50 md:w-full md:max-w-3xl
-            transition-opacity duration-300
-            ${showFooter ? "opacity-100" : "opacity-0 md:opacity-100"}
+            transition-opacity duration-300 
+            opacity-100
           `}
         >
           <LetterDisplay
             unlockedGames={showLoveLetters}
             onLetterSelect={setSelectedLetter}
             showFinalLetter={showFinalLetter}
+            isMobile={isMobile}
+            showFooter={showFooter}
           />
         </div>
 

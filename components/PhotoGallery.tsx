@@ -19,22 +19,22 @@ export default function PhotoGallery() {
   const fallbackPhotos = [
     {
       id: 1,
-      url: "https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/photos/4BA83CCB-64B4-4124-AB39-34ABFB8546F1.PNG",
+      url: "https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/PhotosOfMiwaAndDouglas//33f68bfc-5166-44f6-8834-2518915b87cc1739760779763-qgu7e35fnom.jpg",
       order: 0,
     },
     {
       id: 2,
-      url: "https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/photos/Miwa%20collage.png",
+      url: "https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/PhotosOfMiwaAndDouglas//ee5c525c-49a6-415f-a1fe-9d7407196e5d1739697755720-fpjc83gjfog.png",
       order: 1,
     },
     {
       id: 3,
-      url: "https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/photos/IMG_6552.jpg",
+      url: "https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/PhotosOfMiwaAndDouglas//ee5c525c-49a6-415f-a1fe-9d7407196e5d1739698611491-gzh3o7akq2c.jpg",
       order: 2,
     },
     {
       id: 4,
-      url: " https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/photos/IMG_4888.jpg",
+      url: "https://fvipqaosxgefguxgblfc.supabase.co/storage/v1/object/public/PhotosOfMiwaAndDouglas//ee5c525c-49a6-415f-a1fe-9d7407196e5d1739700916782-r8w6g9jpao.jpg",
       order: 3,
     },
   ];

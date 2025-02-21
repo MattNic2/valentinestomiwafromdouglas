@@ -113,7 +113,7 @@ export default function LoveLetter({ game, onLetterClose }: LoveLetterProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[80]"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-[80]"
           onClick={handleClose}
         >
           <motion.div
@@ -121,20 +121,20 @@ export default function LoveLetter({ game, onLetterClose }: LoveLetterProps) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl relative"
+            className="bg-white rounded-2xl p-4 sm:p-8 w-full max-w-2xl max-h-[90vh] sm:max-h-[80vh] overflow-y-auto shadow-xl relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-3xl font-serif text-rose-600 mb-6 text-center">
+            <h2 className="text-2xl sm:text-3xl font-serif text-rose-600 mb-4 sm:mb-6 text-center">
               A Special Message for You
             </h2>
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-base sm:prose-lg max-w-none">
               <pre className="whitespace-pre-wrap font-sans text-gray-700 leading-relaxed">
                 {loveLetters[game]}
               </pre>
             </div>
             <button
               onClick={handleClose}
-              className="mt-6 bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-full 
+              className="mt-4 sm:mt-6 bg-rose-600 hover:bg-rose-700 text-white px-6 py-2.5 rounded-full 
                        text-sm font-medium transition-all duration-200 
                        hover:scale-105 mx-auto block
                        focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"

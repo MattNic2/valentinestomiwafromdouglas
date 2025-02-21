@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     description: "Happy Valentines Day bb from Douglas",
     images: [
       {
-        url: `${baseUrl}/Miwa_collage.jpg`,
+        url: `/Miwa_collage.jpg`,
         width: 1200,
         height: 630,
         alt: "Douglas and Miwa's Valentine's Day",
@@ -39,11 +39,11 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "To My Love Miwa",
     description: "Happy Valentines Day bb from Douglas",
-    images: [`${baseUrl}/Miwa_collage.jpg`],
+    images: [`/Miwa_collage.jpg`],
     creator: "@seoking23",
   },
   other: {
-    "x-image": [`${baseUrl}/Miwa_collage.jpg`],
+    "x-image": [`/Miwa_collage.jpg`],
     "x-title": "To My Love Miwa",
     "x-description": "Happy Valentines Day bb from Douglas",
   },

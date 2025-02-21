@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://tomylovemiwa.com";
 
 export const metadata: Metadata = {
   title: "To My Love Miwa",
@@ -41,6 +41,11 @@ export const metadata: Metadata = {
     description: "Happy Valentines Day bb from Douglas",
     images: [`${baseUrl}/Miwa_collage.jpg`],
     creator: "@seoking23",
+  },
+  other: {
+    "x-image": [`${baseUrl}/Miwa_collage.jpg`],
+    "x-title": "To My Love Miwa",
+    "x-description": "Happy Valentines Day bb from Douglas",
   },
 };
 
